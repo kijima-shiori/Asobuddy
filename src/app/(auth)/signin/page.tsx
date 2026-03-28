@@ -1,54 +1,70 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import Link from 'next/link';
+import Image from "next/image";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SignInPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-
-  const handleSignIn = async () => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      setErrorMsg(error.message);
-      return;
-    }
-
-    window.location.href = '/dashboard';
-  };
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   return (
-    <div style={{ maxWidth: 400, margin: '0 auto' }}>
-      <h2>ログイン</h2>
+    <div className="flex flex-col min-h-screen bg-white">
+      {/* 上部 45% 背景画像 */}
+      <div className="relative w-full h-[45vh]">
+        <Image
+          src="/images/login-bg.png"
+          alt="Login Background"
+          fill
+          className="object-cover"
+          priority
+        />
 
-      <input
-        type="email"
-        placeholder="メールアドレス"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+          <h1 className="text-4xl font-bold drop-shadow-md">Login</h1>
+          <p className="text-sm mt-2 drop-shadow-md">Good to see you back!</p>
+        </div>
+      </div>
 
-      <input
-        type="password"
-        placeholder="パスワード"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+      {/* 入力欄 */}
+      <div className="flex flex-col px-8 mt-6 space-y-4">
+        <input
+          type="email"
+          placeholder="Email Address"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FFA451]"
+        />
 
-      <button onClick={handleSignIn}>ログイン</button>
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FFA451]"
+        />
 
-      <p>
-        アカウントをお持ちでない方{' '}
-        <Link href="/auth/signup">新規登録はこちら</Link>
-      </p>
+        {/* Next ボタン */}
+        <button
+          className="w-full bg-[#FFA451] text-white py-3 rounded-lg font-semibold mt-2"
+        >
+          Next
+        </button>
 
-      {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
+        {/* 黒い横線 */}
+        <div className="w-full border-t border-black my-4"></div>
+
+        {/* Create Account ボタン → サインアップへ遷移 */}
+        <button
+          type="button"
+          onClick={() => router.push("/signup")}
+          className="w-full bg-white border border-[#FFA451] text-[#FFA451] py-3 rounded-lg font-semibold"
+>
+  Create Account
+</button>
+
+      </div>
     </div>
   );
 }
