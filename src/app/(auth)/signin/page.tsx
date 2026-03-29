@@ -9,26 +9,36 @@ export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  return (
-    <div className="flex flex-col min-h-screen bg-white">
-      {/* 上部 45% 背景画像 */}
-      <div className="relative w-full h-[45vh]">
-        <Image
-          src="/images/login-bg.png"
-          alt="Login Background"
-          fill
-          className="object-cover"
-          priority
-        />
+ return (
+    <div className="relative w-full h-[45vh] px-4 pt-4">
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-          <h1 className="text-4xl font-bold drop-shadow-md">Login</h1>
-          <p className="text-sm mt-2 drop-shadow-md">Good to see you back!</p>
+      {/* 上部 45% 背景画像 */}
+     
+     <div className="relative w-full h-[45vh] md:h-[50vh] lg:h-[55vh] px-4 pt-4">
+
+     <div
+      className="w-full h-full rounded-xl bg-no-repeat bg-cover bg-top"
+           style={{
+             backgroundImage: "url('/images/login-bg.png')",
+    }}
+       ></div>
+        
+
+        {/* テキスト配置 */}
+        <div className="absolute top-35 left-12 text-left">
+          <h1 className="text-5xl font-bold" style={{ color: "#2D6F7F" }}>
+            Login
+          </h1>
+
+          <p className="text-lg mt-8 font-medium" style={{ color: "#333333" }}>
+            Good to see you back!
+          </p>
         </div>
       </div>
 
       {/* 入力欄 */}
       <div className="flex flex-col px-8 mt-6 space-y-4">
+          <label className="text-black font-medium font-sans">メールアドレス</label>
         <input
           type="email"
           placeholder="Email Address"
@@ -36,7 +46,8 @@ export default function SignInPage() {
           onChange={(e) => setEmail(e.target.value)}
           className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FFA451]"
         />
-
+        
+          <label className="text-black font-medium font-sansmt-2">パスワード</label>
         <input
           type="password"
           placeholder="Password"
@@ -45,26 +56,21 @@ export default function SignInPage() {
           className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FFA451]"
         />
 
-        {/* Next ボタン */}
-        <button
-          className="w-full bg-[#FFA451] text-white py-3 rounded-lg font-semibold mt-2"
-        >
+        <button className="w-full bg-[#FFA451] text-white py-3 rounded-lg font-semibold mt-2">
           Next
         </button>
 
-        {/* 黒い横線 */}
         <div className="w-full border-t border-black my-4"></div>
 
-        {/* Create Account ボタン → サインアップへ遷移 */}
         <button
           type="button"
           onClick={() => router.push("/signup")}
           className="w-full bg-white border border-[#FFA451] text-[#FFA451] py-3 rounded-lg font-semibold"
->
-  Create Account
-</button>
-
+        >
+          Create Account
+        </button>
       </div>
+
     </div>
   );
 }
