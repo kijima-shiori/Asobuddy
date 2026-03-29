@@ -1,55 +1,79 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import Link from 'next/link';
+import Image from "next/image";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-export default function SignUpPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
+export default function SignInPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleSignUp = async () => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+ return (
+    <div className="relative w-full h-[45vh] px-4 pt-4">
 
-    if (error) {
-      setErrorMsg(error.message);
-      return;
-    }
+      {/* 上部 45% 背景画像 */}
+     
+     <div className="relative w-full h-[45vh] md:h-[50vh] lg:h-[55vh] px-4 pt-4">
 
-    alert('登録が完了しました。ログインしてください。');
-    window.location.href = '/auth/signin';
-  };
+     <div
+      className="w-full h-full rounded-xl bg-no-repeat bg-cover bg-top"
+           style={{
+             backgroundImage: "url('/images/login-bg.png')",
+    }}
+       ></div>
+        
 
-  return (
-    <div style={{ maxWidth: 400, margin: '0 auto' }}>
-      <h2>新規登録</h2>
+        {/* テキスト配置 */}
+        <div className="absolute top-35 left-12 text-left">
+          <h1 className="text-5xl font-bold" style={{ color: "#2D6F7F" }}>
+            Create<br />Account
+          </h1>
+        </div>
+      </div>
 
-      <input
-        type="email"
-        placeholder="メールアドレス"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+      {/* 入力欄 */}
+      <div className="flex flex-col px-8 mt-6 space-y-4">
 
-      <input
-        type="password"
-        placeholder="パスワード"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+          <label className="text-black font-medium font-sans">名前</label>
+        <input
+          type="name"
+          placeholder="Name"
+          value={email}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FFA451]"
+        />
+        
+      
+          <label className="text-black font-medium font-sans">メールアドレス</label>
+        <input
+          type="email"
+          placeholder="Email Address"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FFA451]"
+        />
+        
+          <label className="text-black font-medium font-sansmt-2">パスワード</label>
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FFA451]"
+        />
 
-      <button onClick={handleSignUp}>登録する</button>
+        <button className="w-full bg-[#FFA451] text-white py-3 rounded-lg font-semibold mt-2">
+          Next
+        </button>
 
-      <p>
-        すでにアカウントをお持ちの方{' '}
-        <Link href="/signin">ログインはこちら</Link>
-      </p>
+  
 
-      {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
-    </div>
+    
+      </div>
+      </div>
   );
+  
 }
+
+
