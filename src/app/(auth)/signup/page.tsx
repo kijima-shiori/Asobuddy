@@ -3,11 +3,41 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
+
 
 export default function SignInPage() {
   const router = useRouter();
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!, 
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+
+
+   const handleSignUp = async () => {
+    // ① Supabase Auth にユーザー作成
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      alert("サインアップに失敗しました：" + error.message);
+      return;
+    }
+
+    const user = data.user;
+    if (!user) return;
+
+
+    // ③ 次のページへ遷移
+    router.push("/account");
+  };
+
 
  return (
     <div className="relative w-full h-[45vh] px-4 pt-4">
@@ -25,7 +55,7 @@ export default function SignInPage() {
         
 
         {/* テキスト配置 */}
-        <div className="absolute top-35 left-12 text-left">
+        <div className="absolute top-32 left-12 text-left">
           <h1 className="text-5xl font-bold" style={{ color: "#2D6F7F" }}>
             Create<br />Account
           </h1>
@@ -33,19 +63,10 @@ export default function SignInPage() {
       </div>
 
       {/* 入力欄 */}
-      <div className="flex flex-col px-8 mt-6 space-y-4">
+      <div className="flex flex-col px-8 mt-12 space-y-6">
 
-          <label className="text-black font-medium font-sans">名前</label>
-        <input
-          type="name"
-          placeholder="Name"
-          value={email}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FFA451]"
-        />
-        
-      
-          <label className="text-black font-medium font-sans">メールアドレス</label>
+     
+          <label className="text-black font-medium font-sans mt-8">メールアドレス</label>
         <input
           type="email"
           placeholder="Email Address"
@@ -54,7 +75,7 @@ export default function SignInPage() {
           className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FFA451]"
         />
         
-          <label className="text-black font-medium font-sansmt-2">パスワード</label>
+          <label className="text-black font-medium font-sans mt-6">パスワード</label>
         <input
           type="password"
           placeholder="Password"
@@ -63,7 +84,10 @@ export default function SignInPage() {
           className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FFA451]"
         />
 
-        <button className="w-full bg-[#FFA451] text-white py-3 rounded-lg font-semibold mt-2">
+        <button 
+          onClick={handleSignUp}
+          className="w-full bg-[#FFA451] text-white py-3 rounded-lg font-semibold mt-2"
+         >
           Next
         </button>
 
@@ -71,7 +95,7 @@ export default function SignInPage() {
 
     
       </div>
-      </div>
+    </div>
   );
   
 }

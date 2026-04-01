@@ -3,11 +3,34 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
 
 export default function SignInPage() {
   const router = useRouter();
+
+  // Supabase クライアント
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+   const handleLogin = async () => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+     if (error) {
+      alert("ログインに失敗しました：" + error.message);
+      return;
+    }
+
+       router.push("/account");
+  };
 
  return (
     <div className="relative w-full h-[45vh] px-4 pt-4">
@@ -55,8 +78,11 @@ export default function SignInPage() {
           onChange={(e) => setPassword(e.target.value)}
           className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FFA451]"
         />
-
-        <button className="w-full bg-[#FFA451] text-white py-3 rounded-lg font-semibold mt-2">
+        {/* 🔥 ログインボタン */}
+        <button
+          onClick={handleLogin}
+          className="w-full bg-[#FFA451] text-white py-3 rounded-lg font-semibold mt-2"
+        >
           Next
         </button>
 
@@ -68,6 +94,7 @@ export default function SignInPage() {
           className="w-full bg-white border border-[#FFA451] text-[#FFA451] py-3 rounded-lg font-semibold"
         >
           Create Account
+          
         </button>
       </div>
 
