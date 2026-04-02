@@ -1,3 +1,5 @@
+'use client'
+
 import {
     useJoin,
   useLocalMicrophoneTrack, //マイクの音声を準備する
@@ -40,8 +42,8 @@ fetchToken()
 // チャンネルに入室
 useJoin({
         appid:process.env.NEXT_PUBLIC_AGORA_APP_ID!,
-        channel:channelName,
-        token:token,
+        channel: "test-channel",
+        token: "007eJxTYEgzuSweZSST+/JgCs+PCxZ7i17G7Fhz+9lP5yex0d9PMjAqMFiaGKQlmRinmCWampmkWJokJhuYG6dYWlomJVkmpxik9SmfzWwIZGS4u/8JKyMDBIL4PAwlqcUluskZiXl5qTkMDADmnCUK",
     },ready)
 
   return {
