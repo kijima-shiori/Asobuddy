@@ -1,48 +1,47 @@
-"use client";
+'use client'
 
-import { useState } from "react";
+import { useState } from 'react'
 
 export default function TestPage() {
-  const [childText, setChildText] = useState("");
-  const [parentText, setParentText] = useState("");
+  const [childText, setChildText] = useState('')
+  const [parentText, setParentText] = useState('')
 
   const handleUpload = async (file: File) => {
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      const formData = new FormData()
+      formData.append('file', file)
 
       // Whisper
-      const res = await fetch("/api/transcribe", {
-        method: "POST",
+      const res = await fetch('/api/transcribe', {
+        method: 'POST',
         body: formData,
-      });
+      })
 
-      const data = await res.json();
-      const transcript = data.text;
+      const data = await res.json()
+      const transcript = data.text
 
-      console.log("Transcript:", transcript);
+      console.log('Transcript:', transcript)
 
       // report
-      const reportRes = await fetch("/api/report", {
-        method: "POST",
+      const reportRes = await fetch('/api/report', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ transcript }),
-      });
+      })
 
-      const reportData = await reportRes.json();
+      const reportData = await reportRes.json()
 
-      console.log("結果👇", reportData);
+      console.log('結果👇', reportData)
 
       // UIに反映
-      setChildText(reportData.child);
-      setParentText(reportData.parent);
-
+      setChildText(reportData.child)
+      setParentText(reportData.parent)
     } catch (e) {
-      console.error("❌エラー", e);
+      console.error('❌エラー', e)
     }
-  };
+  }
 
   return (
     <div style={{ padding: 20 }}>
@@ -51,29 +50,25 @@ export default function TestPage() {
       <input
         type="file"
         onClick={(e) => {
-          (e.target as HTMLInputElement).value = "";
+          ;(e.target as HTMLInputElement).value = ''
         }}
         onChange={(e) => {
-          const files = (e.target as HTMLInputElement).files;
+          const files = (e.target as HTMLInputElement).files
 
-          if (!files || files.length === 0) return;
+          if (!files || files.length === 0) return
 
-          handleUpload(files[0]);
+          handleUpload(files[0])
         }}
       />
 
       {/* 👇 UI表示 */}
       <div style={{ marginTop: 30 }}>
         <h2>子ども向け</h2>
-        <p style={{ whiteSpace: "pre-line" }}>
-          {childText}
-        </p>
+        <p style={{ whiteSpace: 'pre-line' }}>{childText}</p>
 
         <h2 style={{ marginTop: 20 }}>保護者向け</h2>
-        <p style={{ whiteSpace: "pre-line" }}>
-          {parentText}
-        </p>
+        <p style={{ whiteSpace: 'pre-line' }}>{parentText}</p>
       </div>
     </div>
-  );
+  )
 }
