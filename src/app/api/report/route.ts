@@ -1,24 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
+import { NextRequest, NextResponse } from 'next/server'
+import OpenAI from 'openai'
 
 export async function POST(req: NextRequest) {
   try {
-    const { transcript } = await req.json();
+    const { transcript } = await req.json()
 
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
-    });
+    })
 
     // 🧒 子ども向け
     const childRes = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: 'gpt-4o-mini',
       messages: [
         {
-          role: "system",
-          content: "子ども向けにやさしく説明する先生です。",
+          role: 'system',
+          content: '子ども向けにやさしく説明する先生です。',
         },
         {
-          role: "user",
+          role: 'user',
           content: `"あなたはルールを厳守するアシスタントです。フォーマット違反は禁止です。"
             以下の会話を子ども向けにまとめてください。これは子ども向けなので、勝手に日本向け等の情報を追加しないでください。
            【絶対ルール】
@@ -41,19 +41,20 @@ export async function POST(req: NextRequest) {
             `,
         },
       ],
-    });
+    })
 
     // 👨‍👩‍👧 保護者向け
     const parentRes = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: 'gpt-4o-mini',
       temperature: 0.2,
       messages: [
         {
-          role: "system",
-          content: "あなたは事実のみを正確に伝える日本語ライターです。推測や誇張は禁止です。",
+          role: 'system',
+          content:
+            'あなたは事実のみを正確に伝える日本語ライターです。推測や誇張は禁止です。',
         },
         {
-          role: "user",
+          role: 'user',
           content: `
         "あなたはルールを厳守するアシスタントです。フォーマット違反は禁止です。"
         以下の会話を保護者向けレポートとしてまとめてください。
@@ -77,17 +78,17 @@ export async function POST(req: NextRequest) {
 
         会話：
         ${transcript}
-        `
+        `,
         },
       ],
-    });
+    })
 
     return NextResponse.json({
       child: childRes.choices[0].message.content,
       parent: parentRes.choices[0].message.content,
-    });
+    })
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Report failed" }, { status: 500 });
+    console.error(error)
+    return NextResponse.json({ error: 'Report failed' }, { status: 500 })
   }
 }
