@@ -19,7 +19,7 @@ export default function TestPage() {
 
       const data = await res.json();
       const transcript = data.text;
-
+      const transcriptUrl = data.transcriptUrl; // ★追加
       console.log("Transcript:", transcript);
 
       // report
@@ -28,7 +28,7 @@ export default function TestPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ transcript }),
+        body: JSON.stringify({ transcript, transcriptUrl }),// ★transcriptUrlも送る
       });
 
       const reportData = await reportRes.json();
