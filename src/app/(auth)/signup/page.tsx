@@ -49,14 +49,14 @@ export default function SignInPage() {
      <div
       className="w-full h-full rounded-xl bg-no-repeat bg-cover bg-top"
            style={{
-             backgroundImage: "url('/images/login-bg.png')",
+             backgroundImage: "url('/images/background_blue-1.png')",
     }}
        ></div>
         
 
         {/* テキスト配置 */}
         <div className="absolute top-32 left-12 text-left">
-          <h1 className="text-5xl font-bold" style={{ color: "#2D6F7F" }}>
+          <h1 className="text-5xl font-bold" style={{ color: "#d3dbdd" }}>
             Create<br />Account
           </h1>
         </div>
