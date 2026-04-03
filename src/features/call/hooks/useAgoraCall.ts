@@ -16,6 +16,12 @@ const [ready, setReady] = useState(false)
 const [micOn, setMicOn] = useState(true)
 const [cameraOn, setCameraOn] = useState(true)
 
+// デバッグ用
+  useEffect(() => {
+    console.log("token:", token)
+    console.log("ready:", ready)
+  }, [token, ready])
+
 // トークン取得（ページが開いた時に実行）
 useEffect(() => {
     const fetchToken = async () => {
@@ -42,9 +48,9 @@ fetchToken()
 // チャンネルに入室
 useJoin({
         appid:process.env.NEXT_PUBLIC_AGORA_APP_ID!,
-        channel: "test-channel",
-        token: "007eJxTYEgzuSweZSST+/JgCs+PCxZ7i17G7Fhz+9lP5yex0d9PMjAqMFiaGKQlmRinmCWampmkWJokJhuYG6dYWlomJVkmpxik9SmfzWwIZGS4u/8JKyMDBIL4PAwlqcUluskZiXl5qTkMDADmnCUK",
-    },ready)
+        channel: channelName,
+        token: token,
+    }, ready && token !== "") // tokenが空じゃないときだけ実行する
 
   return {
     localMicrophoneTrack,
