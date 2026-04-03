@@ -1,46 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+)
 
 export async function POST(req: NextRequest) {
   try {
-    const { transcript } = await req.json()
+    const { transcript }: { transcript: string } = await req.json()
 
     const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    })
-
-    // 🧒 子ども向け
-    const childRes = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: '子ども向けにやさしく説明する先生です。',
-        },
-        {
-          role: 'user',
-          content: `"あなたはルールを厳守するアシスタントです。フォーマット違反は禁止です。"
-            以下の会話を子ども向けにまとめてください。これは子ども向けなので、勝手に日本向け等の情報を追加しないでください。
-           【絶対ルール】
-            ・出力は「きょうのおはなし：」から必ず始める
-            ・「きょうのおはなし：」以外の言葉は一切使わない（例：「日本向け」などは禁止）
-            ・会話に出てきた内容だけを書く（想像・推測などの勝手な追加は禁止）
-            ・ポケモンなど会話に出てきた名前は必ず正確にそのまま使う
-            ・1〜2文で簡潔にまとめる
-            ・事実だけを書く（例：「一緒に遊んだ」は禁止。これは会話のアプリです）
-            ・小学生でも分かる言葉を使う
-            ・楽しい雰囲気で書く
-            ・何について話したかを入れる（例：「〇〇について話したよ！」など）
-
-            【出力形式（厳守）】
-            きょうのおはなし：
-            〇〇
-
-            会話：
-            ${transcript}
-            `,
-        },
-      ],
+      apiKey: process.env.OPENAI_API_KEY!,
     })
 
     // 👨‍👩‍👧 保護者向け
@@ -56,36 +28,66 @@ export async function POST(req: NextRequest) {
         {
           role: 'user',
           content: `
-        "あなたはルールを厳守するアシスタントです。フォーマット違反は禁止です。"
-        以下の会話を保護者向けレポートとしてまとめてください。
+以下の会話を保護者向けレポートとしてまとめてください。
 
-        【絶対ルール】
-        ・会話に出てきた事実のみを書く（推測・補完は禁止）
-        ・日本語は自然で丁寧な文章にする（不自然な表現は禁止）
-        ・誤解を生む表現は禁止（例：「一緒に遊んでいる」など）
+【出力形式】
+要約：
+〇〇
 
-        【内容ルール】
-        ・2〜3文で簡潔に
-        ・子どもの様子が分かる
-        ・安心感のある表現
+安全判定：
+〇〇
 
-        【出力形式】
-        要約：
-        〇〇
+会話：
+${transcript}
+`,
+        },
+      ],
+    })
 
-        安全判定：
-        〇〇
+    const parentText = parentRes.choices[0].message.content ?? ''
 
-        会話：
-        ${transcript}
-        `,
+    // safety_flag 簡易判定
+    const safety_flag = parentText.includes('問題') ? true : false
+
+    // DB保存
+    const { error: insertError } = await supabase.from('call_reports').insert({
+      session_id: crypto.randomUUID(), // ランダムなセッションID★ここはMVPなので、実際は通話ごとに一意のIDを生成して保存するべき
+      summary: parentText,
+      transcript_url: null,
+      safety_flag,
+    })
+
+    if (insertError) {
+      console.error('DB insert error:', insertError)
+    }
+
+    // 🧒 子ども向け
+    const childRes = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: '子ども向けにやさしく説明する先生です。',
+        },
+        {
+          role: 'user',
+          content: `
+以下の会話を子ども向けにまとめてください。
+
+きょうのおはなし：
+〇〇
+
+会話：
+${transcript}
+`,
         },
       ],
     })
 
     return NextResponse.json({
-      child: childRes.choices[0].message.content,
-      parent: parentRes.choices[0].message.content,
+      child: childRes.choices[0].message.content ?? '',
+      parent: parentText,
+      safety_flag,
     })
   } catch (error) {
     console.error(error)
