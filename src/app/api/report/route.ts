@@ -15,96 +15,104 @@ export async function POST(req: NextRequest) {
       apiKey: process.env.OPENAI_API_KEY!,
     })
 
-    // 👨‍👩‍👧 保護者向け
-    const parentRes = await openai.chat.completions.create({
+    // 🟢 要約
+    const summaryRes = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
-      temperature: 0.2,
+      temperature: 0,
       messages: [
         {
           role: 'system',
-          content:
-            'あなたは事実のみを正確に伝える日本語ライターです。推測や誇張は禁止です。',
+          content: `
+あなたは要約専用AIです。必ずルールを守ること。
+
+【子ども向け】
+・必ず1〜2文にする
+・ひらがな多め
+・名前やチーム名はカタカナ
+・やさしい言葉で書く
+・意味を変えない
+
+【保護者向け】
+・事実のみを書く
+・推測禁止
+・チーム名は省略しない
+
+【出力形式】
+
+child:
+〇〇
+
+parent:
+〇〇
+`,
         },
         {
           role: 'user',
-          content: `
-以下の会話を保護者向けレポートとしてまとめてください。
-
-【出力形式】
-要約：
-〇〇
-
-安全判定：
-〇〇
-
-会話：
-${transcript}
-`,
+          content: transcript,
         },
       ],
     })
 
-    const parentText = parentRes.choices[0].message.content ?? ''
+    const summaryContent = summaryRes.choices[0].message.content ?? ''
 
-    // safety_flag 簡易判定
-    const dangerWords = [
-      'バカ',
-      'ばか',
-      'うざい',
-      'きもい',
-      '殺す',
-      'ころす',
-      '殴る',
-      'なぐる',
-      '死ね',
-      'しね',
-      '消えろ',
-      'きえろ',
-      'エロ',
-      'えろ',
-    ]
+    const child =
+      summaryContent.match(/child:\n([\s\S]*?)\n\nparent:/)?.[1]?.trim() ?? ''
 
-    const safety_flag = dangerWords.some((word) => parentText.includes(word))
+    const parent = summaryContent.match(/parent:\n([\s\S]*)/)?.[1]?.trim() ?? ''
 
-    // DB保存
-    const { error: insertError } = await supabase.from('call_reports').insert({
-      session_id: crypto.randomUUID(), // ランダムなセッションID★ここはMVPなので、実際は通話ごとに一意のIDを生成して保存するべき
-      summary: parentText,
+    // 🔴 安全判定（別AI）
+    const safetyRes = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      temperature: 0,
+      messages: [
+        {
+          role: 'system',
+          content: `
+あなたは安全判定専用AIです。
+
+・危険な発言があれば true
+・なければ false
+・危険な場合は実際の言葉をそのまま抜き出す
+・抽象表現は禁止
+・最も強い言葉を優先（例：死ね、消えろ）
+・理由は日本語で書く
+
+【出力形式】
+
+safety_flag:
+true or false
+
+reason:
+〇〇
+`,
+        },
+        {
+          role: 'user',
+          content: transcript,
+        },
+      ],
+    })
+
+    const safetyContent = safetyRes.choices[0].message.content ?? ''
+
+    const safety_flag =
+      safetyContent.match(/safety_flag:\n(true|false)/)?.[1] === 'true'
+
+    const reason = safetyContent.match(/reason:\n([\s\S]*)/)?.[1]?.trim() ?? ''
+
+    // 💾 DB保存
+    await supabase.from('call_reports').insert({
+      session_id: crypto.randomUUID(),
+      summary: parent,
       transcript_url: null,
       safety_flag,
     })
 
-    if (insertError) {
-      console.error('DB insert error:', insertError)
-    }
-
-    // 🧒 子ども向け
-    const childRes = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: '子ども向けにやさしく説明する先生です。',
-        },
-        {
-          role: 'user',
-          content: `
-以下の会話を子ども向けにまとめてください。
-
-きょうのおはなし：
-〇〇
-
-会話：
-${transcript}
-`,
-        },
-      ],
-    })
-
     return NextResponse.json({
-      child: childRes.choices[0].message.content ?? '',
-      parent: parentText,
+      child,
+      parent,
       safety_flag,
+      reason,
     })
   } catch (error) {
     console.error(error)
