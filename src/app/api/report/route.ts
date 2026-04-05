@@ -47,7 +47,24 @@ ${transcript}
     const parentText = parentRes.choices[0].message.content ?? ''
 
     // safety_flag 簡易判定
-    const safety_flag = parentText.includes('問題') ? true : false
+    const dangerWords = [
+      'バカ',
+      'ばか',
+      'うざい',
+      'きもい',
+      '殺す',
+      'ころす',
+      '殴る',
+      'なぐる',
+      '死ね',
+      'しね',
+      '消えろ',
+      'きえろ',
+      'エロ',
+      'えろ',
+    ]
+
+    const safety_flag = dangerWords.some((word) => parentText.includes(word))
 
     // DB保存
     const { error: insertError } = await supabase.from('call_reports').insert({
