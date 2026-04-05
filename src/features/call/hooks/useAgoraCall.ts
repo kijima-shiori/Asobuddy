@@ -50,6 +50,7 @@ useJoin({
         appid:process.env.NEXT_PUBLIC_AGORA_APP_ID!,
         channel: channelName,
         token: token,
+        uid: 1,
     }, ready && token !== "") // tokenが空じゃないときだけ実行する
 
   return {

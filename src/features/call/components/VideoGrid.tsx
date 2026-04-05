@@ -1,10 +1,16 @@
 'use client'
 
-import { LocalUser, RemoteUser } from 'agora-rtc-react'
+import AgoraRTC, {
+  AgoraRTCProvider,
+  LocalUser,
+  RemoteUser,
+} from 'agora-rtc-react'
 import { useAgoraCall } from '@/features/call/hooks/useAgoraCall'
 
-export default function VideoGrid() {
-  // 1. useAgoraCallから値を取り出す
+// clientをここで作る
+const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' })
+
+function VideoGridInner() {
   const {
     localMicrophoneTrack,
     localCameraTrack,
@@ -15,7 +21,6 @@ export default function VideoGrid() {
 
   return (
     <div className="flex flex-col gap-4 p-4 h-full">
-      {/* 相手の映像：メインで大きく表示 */}
       <div className="relative flex-1 bg-slate-900 rounded-3xl overflow-hidden shadow-xl border-4 border-orange-200 min-h-[300px]">
         {remoteUsers.length > 0 ? (
           remoteUsers.map((user) => (
@@ -36,7 +41,6 @@ export default function VideoGrid() {
         </div>
       </div>
 
-      {/* 自分の映像：少し小さめに表示 */}
       <div className="relative h-48 bg-slate-800 rounded-2xl overflow-hidden shadow-lg border-4 border-blue-200 self-end w-full md:w-1/3">
         <LocalUser
           audioTrack={localMicrophoneTrack}
@@ -50,5 +54,14 @@ export default function VideoGrid() {
         </div>
       </div>
     </div>
+  )
+}
+
+// AgoraRTCProviderで包んでexport
+export default function VideoGrid() {
+  return (
+    <AgoraRTCProvider client={client}>
+      <VideoGridInner />
+    </AgoraRTCProvider>
   )
 }
