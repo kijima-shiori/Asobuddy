@@ -6,19 +6,85 @@ import { Session } from '@/types'
  * 新しいマッチング予約(Session)を作成する
  * @param childId 作成者のID
  */
-export const createSession = async (childId: string) => {
+export const createSession = async (userId: string) => {
+  // 自分の好きなことをリストで取得-----------------------------
+  const { data: myInterests } = await supabase
+    .from('child_categories')
+    .select('category_id')
+    .eq('child_id', userId)
+
+  const myCategoryIds = myInterests?.map((i) => i.category_id) || []
+
+  // ----------------2重登録禁止
+  // 自分がwaitingですでに待っていないかを確認する（Reactの2回実行を防止）
+  const { data: existingSession } = await supabase
+    .from('sessions')
+    .select('*')
+    .eq('child_a_id', userId)
+    .eq('status', 'waiting')
+    .limit(1)
+
+  // すでにwaitingに自分が登録されたら、新しくinsertせずにreturnで終わる。
+  if (existingSession && existingSession.length > 0) {
+    return existingSession[0]
+  }
+
+  // 好きなことが登録されてない場合----------------------
+  if (myCategoryIds.length === 0) {
+    console.log('好きなことが登録されてないよ')
+    return { status: 'no_interests' }
+  }
+
+  // 待機中のセッションをリストアップ-----------------------------
+  const { data: waitingSessions } = await supabase
+    .from('sessions')
+    .select('id, child_a_id')
+    .eq('status', 'waiting')
+    .neq('child_a_id', userId)
+    .order('created_at', { ascending: true })
+
+  // waitingリストを一つずつ順番に見る-----------------------------
+  if (waitingSessions && waitingSessions.length > 0) {
+    for (const waitingRoom of waitingSessions) {
+      // その子の趣味を調べて、自分の趣味リスト（myCategoryIds）と合うか確認！
+      const { data: partnerInterests } = await supabase
+        .from('child_categories')
+        .select('category_id')
+        .eq('child_id', waitingRoom.child_a_id)
+        .in('category_id', myCategoryIds)
+
+      // 共通の趣味が1つでも見つかったら、マッチング成立-----------------------------
+      if (partnerInterests && partnerInterests.length > 0) {
+        // 合流処理
+        const { data, error } = await supabase
+          .from('sessions')
+          .update({
+            child_b_id: userId,
+            status: 'matched',
+          })
+          .eq('id', waitingRoom.id)
+          .select()
+          .single()
+
+        if (error) throw error
+        return data
+      }
+    }
+  }
+
+  // 誰もいなければ、自分がchild_a_idになってwaitingになる
   const { data, error } = await supabase
-    .from('sessions') // 1. どのテーブルに？
+    .from('sessions')
     .insert([
-      // 2. 何を差し込む？
       {
-        child_a_id: childId, // 自分のIDをAに入れる
-        status: 'waiting', // 最初は必ず「待ち」状態
+        child_a_id: userId,
+        status: 'waiting',
+        created_at: new Date().toISOString(),
       },
     ])
-    .select() // 3. 書き込んだ結果を返して！
-    .single() // 4. 1件だけ取得する
+    .select()
+    .single()
 
-  if (error) throw error // エラーがあれば投げ飛ばす
-  return data as Session // 成功したら「Session型」として返す
+  if (error) throw error
+  return data
 }

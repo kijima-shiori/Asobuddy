@@ -28,13 +28,8 @@ export default function DashboardPage() {
 
   const userId = '17b0a1d9-4656-4939-9ee4-cd2b9e7a5884'
 
-  const handleFindFriend = async () => {
-    try {
-      await createSession(userId)
-      router.push('/matching')
-    } catch (error) {
-      alert('エラーが起きました。もういちど押してみて。')
-    }
+  const handleFindFriend = () => {
+    router.push('/matching')
   }
 
   if (loading) return <div>読み込み中...</div>
