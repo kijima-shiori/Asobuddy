@@ -43,15 +43,17 @@ fetchToken()
   const remoteUsers = useRemoteUsers()
 
   // 映像・音声を送る
-  usePublish([localMicrophoneTrack, localCameraTrack])
+  usePublish([localMicrophoneTrack, localCameraTrack].filter(Boolean))
 
 // チャンネルに入室
+const shouldJoin = ready && !!token
+
 useJoin({
-        appid:process.env.NEXT_PUBLIC_AGORA_APP_ID!,
-        channel: channelName,
-        token: token,
-        uid: 1,
-    }, ready && token !== "") // tokenが空じゃないときだけ実行する
+  appid: process.env.NEXT_PUBLIC_AGORA_APP_ID!,
+  channel: channelName,
+  token: token,
+  uid: uid,
+}, shouldJoin)
 
   return {
     localMicrophoneTrack,
