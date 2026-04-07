@@ -7,4 +7,6 @@ export interface Session {
   status: sessionStatus
   room_id: string | null
   created_at: string
+  started_at: string | null
+  ended_at: string | null
 }

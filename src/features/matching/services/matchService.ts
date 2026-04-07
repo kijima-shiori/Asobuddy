@@ -1,5 +1,17 @@
 import { supabase } from '@/lib/supabase'
-import { Session } from '@/types'
+
+// 生存報告（Heartbeat)を送る関数
+export const sendHeartbeat = async (sessionId: string) => {
+  const { error } = await supabase
+    .from('sessions')
+    .update({ created_at: new Date().toISOString() })
+    .eq('id', sessionId)
+    .eq('status', 'waiting')
+
+  if (error) {
+    console.error('Heartbeat error:', error.message)
+  }
+}
 
 // ----------------------------------
 /**
@@ -7,6 +19,14 @@ import { Session } from '@/types'
  * @param childId 作成者のID
  */
 export const createSession = async (userId: string) => {
+  // 15秒間Heartbeatが確認できなかった人を除外する
+  const fifteenSecondAgo = new Date(Date.now() - 15 * 1000).toISOString()
+  await supabase
+    .from('sessions')
+    .delete()
+    .eq('status', 'waiting')
+    .lt('created_at', fifteenSecondAgo) //lessthan 15秒前よりも古い
+
   // 自分の好きなことをリストで取得-----------------------------
   const { data: myInterests } = await supabase
     .from('child_categories')

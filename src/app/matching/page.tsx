@@ -1,13 +1,23 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useRef } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useEffect, useState, useRef } from 'react'
 import { createSession } from '@/features/matching/services/matchService'
+import { useHeartbeat } from '@/features/matching/hooks/useHeartbeat'
+import { useMatchRealtime } from '@/features/matching/hooks/useMatchRealtime'
+import { useRouter } from 'next/navigation'
+import { Session } from '@/types'
 
 export default function MatchingPage() {
   const userId = '17b0a1d9-4656-4939-9ee4-cd2b9e7a5884'
   const isStarted = useRef(false)
+  const router = useRouter()
+
+  //   マッチング結果を保存する
+  const [matchResult, setMatchResult] = useState<Session | null>(null)
+
+  useHeartbeat(matchResult?.id)
+  useMatchRealtime(matchResult?.id)
 
   useEffect(() => {
     // 2重実行禁止-----------------
@@ -18,6 +28,18 @@ export default function MatchingPage() {
     const startMatching = async () => {
       try {
         const session = await createSession(userId)
+
+        // setMatchResultで結果を書き込む前にマッチングしたら追い出す
+        // 書き込みを先にすると、matchedしてもwaiting状態で残ってしまう
+        if (session.status === 'matched') {
+          console.log('マッチングしたよ！お友達を紹介します')
+          router.push(`/matching/success?session_id=${session.id}`)
+          return
+        }
+
+        // マッチング結果を書き込む
+        setMatchResult(session)
+
         console.log('セッションの状態:', session.status)
       } catch (error) {
         console.error('失敗しました:', error)

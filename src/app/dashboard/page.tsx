@@ -3,13 +3,13 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { createSession } from '@/features/matching/services/matchService'
 
 export default function DashboardPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
 
-  // ログインしているかチェック
+  // ログインチェック
+  // TODO: データベースからChild IDを反映する。（仮でIDをベタ打ちしています）
   useEffect(() => {
     const checkUser = async () => {
       const {
