@@ -15,6 +15,8 @@ const [token, setToken] = useState("")
 const [ready, setReady] = useState(false)
 const [micOn, setMicOn] = useState(true)
 const [cameraOn, setCameraOn] = useState(true)
+//TODO ★Supabase認証実装後、string|nullに変更する★
+const [uid, setUid] = useState<number>(Math.floor(Math.random() * 10000))
 
 // デバッグ用
   useEffect(() => {
@@ -23,12 +25,13 @@ const [cameraOn, setCameraOn] = useState(true)
   }, [token, ready])
 
 // トークン取得（ページが開いた時に実行）
+// TODO ★token取得時のエラーハンドリング追加★
 useEffect(() => {
     const fetchToken = async () => {
         const response = await fetch("/api/calls/token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ channelName: channelName, uid: 1 })
+        body: JSON.stringify({ channelName: channelName, uid: uid })
     })
     const { token } = await response.json()
     setToken(token)
@@ -46,13 +49,13 @@ fetchToken()
   usePublish([localMicrophoneTrack, localCameraTrack].filter(Boolean))
 
 // チャンネルに入室
-const shouldJoin = ready && !!token
+const shouldJoin = ready && !!token && !!uid
 
 useJoin({
   appid: process.env.NEXT_PUBLIC_AGORA_APP_ID!,
   channel: channelName,
   token: token,
-  uid: uid,
+  uid: uid!,
 }, shouldJoin)
 
   return {

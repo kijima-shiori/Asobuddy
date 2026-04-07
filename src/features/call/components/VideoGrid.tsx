@@ -61,7 +61,9 @@ function VideoGridInner() {
 export default function VideoGrid() {
   return (
     <AgoraRTCProvider client={client}>
-      <VideoGridInner />
+      <div className="w-full h-full">
+        <VideoGridInner />
+      </div>
     </AgoraRTCProvider>
   )
 }

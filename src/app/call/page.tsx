@@ -34,8 +34,8 @@ export default function CallPage() {
           <AiHintPanel />
         </div>
         {/* 中央：映像 */}
-        <div className="flex-1 flex flex-col gap-3 justify-center items-center">
-          <VideoGrid />
+        <div className="flex-1 flex flex-col gap-3 justify-center items-center w-full">
+          <VideoGrid className="w-full h-full" />
         </div>
         {/* 下部：操作ボタン */}
         <div className="h-[15%] flex items-end justify-center pb-4">
