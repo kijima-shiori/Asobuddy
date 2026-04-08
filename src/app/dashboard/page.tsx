@@ -26,7 +26,7 @@ export default function DashboardPage() {
     checkUser()
   }, [router])
 
-  const userId = '17b0a1d9-4656-4939-9ee4-cd2b9e7a5884'
+  const userId = '99999999-4656-4939-9ee4-cd2b9e7a5884'
 
   const handleFindFriend = () => {
     router.push('/matching')

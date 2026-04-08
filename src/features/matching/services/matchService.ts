@@ -25,6 +25,7 @@ export const createSession = async (userId: string) => {
     .from('sessions')
     .delete()
     .eq('status', 'waiting')
+    .eq('child_a_id', userId)
     .lt('created_at', fifteenSecondAgo) //lessthan 15秒前よりも古い
 
   // 自分の好きなことをリストで取得-----------------------------

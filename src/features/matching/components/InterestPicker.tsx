@@ -20,7 +20,7 @@ export default function InterestPicker() {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
 
   // 仮のID（自分のSupabaseからコピーしたUUID）
-  const userId = '17b0a1d9-4656-4939-9ee4-cd2b9e7a5884'
+  const userId = '99999999-4656-4939-9ee4-cd2b9e7a5884'
 
   //---------------  趣味保存ボタンを押したときに実行される内容
   const handleSave = async () => {
