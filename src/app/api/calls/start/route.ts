@@ -30,4 +30,3 @@ export async function POST(req: NextRequest) {
   console.log("[API Start] 更新成功！データ:", data);
   return NextResponse.json({ message: "開始時刻を記録しました", data });
 }
-}

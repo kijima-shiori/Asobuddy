@@ -10,14 +10,14 @@ import { useAgoraCall } from '@/features/call/hooks/useAgoraCall'
 // clientをここで作る
 const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' })
 
-function VideoGridInner() {
+function VideoGridInner({ sessionId }: { sessionId: string }) {
   const {
     localMicrophoneTrack,
     localCameraTrack,
     remoteUsers,
     micOn,
     cameraOn,
-  } = useAgoraCall('test-channel')
+  } = useAgoraCall('test-channel', sessionId)
 
   console.log('remoteUsers:', remoteUsers)
 
@@ -60,12 +60,10 @@ function VideoGridInner() {
 }
 
 // AgoraRTCProviderで包んでexport
-export default function VideoGrid() {
+export default function VideoGrid({ sessionId }: { sessionId: string }) {
   return (
     <AgoraRTCProvider client={client}>
-      <div className="w-full h-full">
-        <VideoGridInner />
-      </div>
+      <VideoGridInner sessionId={sessionId} />
     </AgoraRTCProvider>
   )
 }

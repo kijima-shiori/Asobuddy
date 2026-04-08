@@ -10,7 +10,7 @@ import {
 import { useState, useEffect} from "react";
 import { supabase } from "@/lib/supabase";
 
-export function useAgoraCall(channelName: string) {
+export function useAgoraCall(channelName: string, sessionId: string) {
 // 状態管理
 const [token, setToken] = useState("")
 const [ready, setReady] = useState(false)
@@ -56,6 +56,17 @@ useEffect(() => {
 }
 fetchToken()
 }, [channelName, uid])
+
+// 通話開始APIを呼び出す
+useEffect(() => {
+  if (!ready || !sessionId) return
+
+  fetch("/api/calls/start", {
+    method: "POST",
+    headers: { "Content-Type": "application/json "},
+    body: JSON.stringify({ sessionId })
+  })
+}, [ready, sessionId])
 
 // カメラ・マイクを管理
   const { localMicrophoneTrack } = useLocalMicrophoneTrack(micOn)
