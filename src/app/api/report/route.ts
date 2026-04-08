@@ -18,13 +18,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const transcript = body.transcript
+    const transcript: string = body.transcript
 
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     })
 
-    // 🟢 要約（child + parent）
+    // 🟢 要約
     const summaryRes = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       temperature: 0,
@@ -32,7 +32,27 @@ export async function POST(req: NextRequest) {
         {
           role: 'system',
           content: `
-あなたは要約専用AIです。childとparentを出力してください。
+あなたは要約専用AIです。必ずルールを守ること。
+
+【子ども向け】
+・必ず1〜2文にする
+・ひらがな多め
+・名前やチーム名はカタカナ
+・やさしい言葉で書く
+・意味を変えない
+
+【保護者向け】
+・事実のみを書く
+・推測禁止
+・チーム名は省略しない
+
+【出力形式】
+
+child:
+〇〇
+
+parent:
+〇〇
 `,
         },
         {
@@ -57,7 +77,22 @@ export async function POST(req: NextRequest) {
         {
           role: 'system',
           content: `
-危険な発言があれば true、なければ false。
+あなたは安全判定専用AIです。
+
+・危険な発言があれば true
+・なければ false
+・危険な場合は実際の言葉をそのまま抜き出す
+・抽象表現は禁止
+・最も強い言葉を優先（例：死ね、消えろ）
+・理由は日本語で書く
+
+【出力形式】
+
+safety_flag:
+true or false
+
+reason:
+〇〇
 `,
         },
         {
@@ -69,7 +104,10 @@ export async function POST(req: NextRequest) {
 
     const safetyContent = safetyRes.choices[0].message.content ?? ''
 
-    const safety_flag = safetyContent.includes('true')
+    const safety_flag =
+      safetyContent.match(/safety_flag:\n(true|false)/)?.[1] === 'true'
+
+    const reason = safetyContent.match(/reason:\n([\s\S]*)/)?.[1]?.trim() ?? ''
 
     // 💾 DB保存
     await supabase.from('call_reports').insert({
@@ -83,9 +121,10 @@ export async function POST(req: NextRequest) {
       child,
       parent,
       safety_flag,
+      reason,
     })
   } catch (error) {
     console.error(error)
-    return NextResponse.json({ error: 'server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Report failed' }, { status: 500 })
   }
 }
