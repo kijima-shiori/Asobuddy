@@ -1,22 +1,20 @@
 'use client'
 
-import Image from 'next/image'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 
 export default function SignInPage() {
   const router = useRouter()
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [name, setName] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleSignUp = async () => {
+    if (loading) return
+    setLoading(true)
+
     // ① Supabase Auth にユーザー作成
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -25,6 +23,7 @@ export default function SignInPage() {
 
     if (error) {
       alert('サインアップに失敗しました：' + error.message)
+      setLoading(false)
       return
     }
 
@@ -43,13 +42,13 @@ export default function SignInPage() {
         <div
           className="w-full h-full rounded-xl bg-no-repeat bg-cover bg-top"
           style={{
-            backgroundImage: "url('/images/login-bg.png')",
+            backgroundImage: "url('/images/background_blue-1.png')",
           }}
         ></div>
 
         {/* テキスト配置 */}
         <div className="absolute top-32 left-12 text-left">
-          <h1 className="text-5xl font-bold" style={{ color: '#2D6F7F' }}>
+          <h1 className="text-5xl font-bold" style={{ color: '#d3dbdd' }}>
             Create
             <br />
             Account
@@ -83,6 +82,7 @@ export default function SignInPage() {
 
         <button
           onClick={handleSignUp}
+          disabled={loading}
           className="w-full bg-[#FFA451] text-white py-3 rounded-lg font-semibold mt-2"
         >
           Next
