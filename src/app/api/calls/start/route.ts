@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
-  // --- 1. 入口のチェック ---
+  // 1. 入口のチェック
   const { sessionId } = await req.json();
   console.log("[API Start] 受け取った sessionId:", sessionId);
 
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "sessionIdが必要です" }, { status: 400 });
   }
 
-  // --- 2. 処理直前のチェック ---
+  // 2. 処理直前のチェック
   const now = new Date().toISOString();
   console.log("[API Start] 書き込む時刻:", now);
 // sessionsテーブルの started_at を現在の時刻で更新
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     .eq("id", sessionId)
     .select();
 
-  // --- 3. 結果のチェック ---
+  // 3. 結果のチェック
   if (error) {
     console.error("[API Start] Supabase更新エラー:", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });

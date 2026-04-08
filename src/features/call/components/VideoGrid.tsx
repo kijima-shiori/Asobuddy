@@ -19,6 +19,8 @@ function VideoGridInner() {
     cameraOn,
   } = useAgoraCall('test-channel')
 
+  console.log('remoteUsers:', remoteUsers)
+
   return (
     <div className="flex flex-col gap-4 p-4 h-full">
       <div className="relative flex-1 bg-slate-900 rounded-3xl overflow-hidden shadow-xl border-4 border-orange-200 min-h-[300px]">
