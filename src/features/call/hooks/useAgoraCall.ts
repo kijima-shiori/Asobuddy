@@ -39,22 +39,28 @@ const [uid, setUid] = useState<number | null>(null)
   }, [token, ready, uid])
 
 // トークン取得（uidが取得できてから実行）
-// TODO ★token取得時のエラーハンドリング追加★
 useEffect(() => {
   if (uid === null) return
 
-    const fetchToken = async () => {
-        const response = await fetch("/api/calls/token", {
+  const fetchToken = async () => {
+    try {
+      const response = await fetch("/api/calls/token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // 数値として送る
         body: JSON.stringify({ channelName: channelName, uid: uid })
-    })
-    const data = await response.json()
-    setToken(data.token)
-    setReady(true)
-}
-fetchToken()
+      })
+
+      if (!response.ok) throw new Error("Token API failed")
+
+      const data = await response.json()
+      setToken(data.token)
+      setReady(true)
+    } catch (e) {
+      console.error("Failed to fetch token:", e)
+      alert("通話に必要なトークンの取得に失敗しました。再読み込みしてください。")
+    }
+  }
+  fetchToken()
 }, [channelName, uid])
 
 // 通話開始APIを呼び出す
