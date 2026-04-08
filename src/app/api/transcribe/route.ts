@@ -4,7 +4,11 @@ import OpenAI from 'openai'
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData()
-    const file = formData.get('file') as File
+    const file = formData.get('file')
+
+    if (!file || !(file instanceof File)) {
+      return NextResponse.json({ error: 'file is required' }, { status: 400 })
+    }
 
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
@@ -20,6 +24,6 @@ export async function POST(req: NextRequest) {
     })
   } catch (error) {
     console.error(error)
-    return NextResponse.json({ error: 'failed' }, { status: 500 })
+    return NextResponse.json({ error: 'transcription failed' }, { status: 500 })
   }
 }
