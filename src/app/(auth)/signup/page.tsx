@@ -2,18 +2,19 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 
 export default function SignInPage() {
   const router = useRouter()
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  
   const handleSignUp = async () => {
+    if (loading) return
+    setLoading(true)
+
     // ① Supabase Auth にユーザー作成
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -22,6 +23,7 @@ export default function SignInPage() {
 
     if (error) {
       alert('サインアップに失敗しました：' + error.message)
+         setLoading(false)
       return
     }
 
@@ -80,6 +82,7 @@ export default function SignInPage() {
 
         <button
           onClick={handleSignUp}
+          disabled={loading}
           className="w-full bg-[#FFA451] text-white py-3 rounded-lg font-semibold mt-2"
         >
           Next

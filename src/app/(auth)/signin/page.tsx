@@ -2,21 +2,20 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 
 export default function SignInPage() {
   const router = useRouter()
 
-  // Supabase クライアント
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false) 
 
   const handleLogin = async () => {
+    if (loading ) return 
+    setLoading(true)
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -24,6 +23,7 @@ export default function SignInPage() {
 
     if (error) {
       alert('ログインに失敗しました：' + error.message)
+         setLoading(false)
       return
     }
 
@@ -67,7 +67,7 @@ export default function SignInPage() {
           className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FFA451]"
         />
 
-        <label className="text-black font-medium font-sansmt-2">
+        <label className="text-black font-medium font-sans mt-2">
           パスワード
         </label>
         <input
@@ -80,6 +80,7 @@ export default function SignInPage() {
         {/* 🔥 ログインボタン */}
         <button
           onClick={handleLogin}
+          disabled={loading}
           className="w-full bg-[#FFA451] text-white py-3 rounded-lg font-semibold mt-2"
         >
           Next
