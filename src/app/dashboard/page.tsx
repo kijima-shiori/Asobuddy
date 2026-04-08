@@ -1,12 +1,17 @@
-import { supabase } from '@/lib/supabase';
-import { redirect } from 'next/navigation';
+'use client'
 
-export default async function DashboardPage() {
-  const { data: { session } } = await supabase.auth.getSession();
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 
-  if (!session) {
-    redirect('/auth/signin');
-  }
+export default function Dashboard() {
+  const router = useRouter()
 
-  return <div>Dashboard</div>;
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) router.push('/signin')
+    })
+  }, [])
+
+  return <div>Dashboard</div>
 }
