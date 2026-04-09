@@ -10,7 +10,7 @@ export default function SignInPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  
+
   const handleSignUp = async () => {
     if (loading) return
     setLoading(true)
@@ -23,7 +23,7 @@ export default function SignInPage() {
 
     if (error) {
       alert('サインアップに失敗しました：' + error.message)
-         setLoading(false)
+      setLoading(false)
       return
     }
 
