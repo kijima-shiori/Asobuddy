@@ -16,7 +16,9 @@ export function useAgoraCall(channelName: string) {
   const [micOn, setMicOn] = useState(true)
   const [cameraOn, setCameraOn] = useState(true)
   //TODO ★Supabase認証実装後、string|nullに変更する★
-  const [uid, setUid] = useState<number>(Math.floor(Math.random() * 10000))
+  const [uid, setUid] = useState<number>(() =>
+    Math.floor(Math.random() * 10000),
+  )
 
   // デバッグ用
   useEffect(() => {
