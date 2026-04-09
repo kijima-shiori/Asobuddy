@@ -16,12 +16,11 @@ export default function DashboardPage() {
         data: { session },
       } = await supabase.auth.getSession()
 
-      setLoading(false)
-      // if (!session) {
-      //   router.push('/auth/signin') // ログインしてなければ飛ばす
-      // } else {
-      //   setLoading(false) // ログインしてれば画面を出す
-      // }
+      if (!session) {
+        router.push('/signin')
+      } else {
+        setLoading(false)
+      }
     }
     checkUser()
   }, [router])
