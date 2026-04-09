@@ -7,13 +7,12 @@ import { supabase } from '@/lib/supabase'
 export default function SignInPage() {
   const router = useRouter()
 
-
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false) 
+  const [loading, setLoading] = useState(false)
 
   const handleLogin = async () => {
-    if (loading ) return 
+    if (loading) return
     setLoading(true)
 
     const { error } = await supabase.auth.signInWithPassword({
@@ -23,7 +22,7 @@ export default function SignInPage() {
 
     if (error) {
       alert('ログインに失敗しました：' + error.message)
-         setLoading(false)
+      setLoading(false)
       return
     }
 
