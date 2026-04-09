@@ -1,8 +1,10 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  /* config options here */
   reactCompiler: true,
+  turbopack: {
+    root: '/Users/akinkorinista/Desktop/team-a-section9',
+  },
 }
 
 export default nextConfig
