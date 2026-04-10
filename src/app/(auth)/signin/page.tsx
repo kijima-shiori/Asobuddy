@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 
+export const dynamic = 'force-dynamic' // これを追加
 export default function SignInPage() {
   const router = useRouter()
 
@@ -12,6 +13,7 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false)
 
   const handleLogin = async () => {
+    const supabase = getSupabase()
     if (loading) return
     setLoading(true)
 
