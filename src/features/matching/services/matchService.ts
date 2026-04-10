@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 export const sendHeartbeat = async (sessionId: string) => {
   const { error } = await supabase
     .from('sessions')
-    .update({ created_at: new Date().toISOString() })
+    .update({ updated_at: new Date().toISOString() })
     .eq('id', sessionId)
     .eq('status', 'waiting')
 
@@ -26,7 +26,7 @@ export const createSession = async (userId: string) => {
     .delete()
     .eq('status', 'waiting')
     .eq('child_a_id', userId)
-    .lt('created_at', fifteenSecondAgo) //lessthan 15秒前よりも古い
+    .lt('updated_at', fifteenSecondAgo) //lessthan 15秒前よりも古い
 
   // 自分の好きなことをリストで取得-----------------------------
   const { data: myInterests } = await supabase
