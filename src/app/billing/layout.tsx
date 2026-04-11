@@ -5,9 +5,5 @@ export default function BillingLayout({
 }: {
   children: React.ReactNode
 }) {
-  return (
-    <>
-      {children}
-    </>
-  )
+  return <>{children}</>
 }
