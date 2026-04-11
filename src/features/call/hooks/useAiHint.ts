@@ -3,10 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 
-const SILENCE_THRESHOLD_SECONDS = 10
+const SILENCE_THRESHOLD_SECONDS = 30
 
 export function useAiHint(sessionId: string, myChildId: string) {
-  const [hint, setHint] = useState<string>("会話が途切れたらヒントが表示されるよ！")
+  const [hint, setHint] = useState<string>("会話がとぎれたらヒントが出るよ！")
   const [loading, setLoading] = useState(false)
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null)
   // カテゴリをキャッシュして毎回DBを叩かないようにする
@@ -34,25 +34,28 @@ export function useAiHint(sessionId: string, myChildId: string) {
         ? session.child_b_id
         : session.child_a_id
 
-      // 自分と相手のカテゴリを別々に取得
+      // 自分と相手のカテゴリを別々に取得する関数
       const fetchChildCategories = async (childId: string): Promise<string[]> => {
-        const { data: childCategories } = await supabase
+        // JOINを使ってcategoriesテーブルのnameを一緒に取得する
+        const { data, error } = await supabase
           .from("child_categories")
-          .select("category_id")
-          .eq("child_id", childId)
+          .select(`
+            categories (
+              name
+            )
+          `)
+          .eq("child_id", childId);
 
-        if (!childCategories || childCategories.length === 0) return []
+        if (error || !data) {
+          console.error("カテゴリ取得失敗:", error);
+          return [];
+        }
 
-        const categoryIds = childCategories.map((c: { category_id: string }) => c.category_id)
-
-        const { data: categories } = await supabase
-          .from("categories")
-          .select("name")
-          .in("id", categoryIds)
-
-        return categories?.map((c: { name: string }) => c.name) ?? []
+        // dataは [{ categories: { name: "ポケモン" } }, ...] という形なので、nameだけの配列に変換する
+        return data.map((item: any) => item.categories?.name).filter(Boolean);
       }
 
+      // 自分の趣味と相手の趣味を並列で取得
       const [myCategories, opponentCategories] = await Promise.all([
         fetchChildCategories(myChildId),
         fetchChildCategories(opponentChildId)
