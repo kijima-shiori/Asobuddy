@@ -82,12 +82,16 @@ export const createSession = async (userId: string) => {
           .update({
             child_b_id: userId,
             status: 'matched',
+            matched_at: new Date().toISOString(),
           })
           .eq('id', waitingRoom.id)
+          .eq('status', 'waiting')
           .select()
           .single()
 
-        if (error) throw error
+        if (error) {
+          continue
+        }
         return data
       }
     }
