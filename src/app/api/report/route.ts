@@ -3,6 +3,15 @@ import OpenAI from 'openai'
 import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
+export async function GET() {
+  return Response.json({
+    child: 'きょうのおはなし：ポケモンの話をしたよ！',
+    parent: 'ポケモンについて楽しく会話できました。',
+    safety_flag: 'safe',
+    reason: '問題なし',
+    used_words: ['pokemon', 'battle', 'fun'],
+  })
+}
 export async function POST(req: NextRequest) {
   try {
     const supabase = createClient(
@@ -35,7 +44,7 @@ export async function POST(req: NextRequest) {
 あなたは要約専用AIです。必ずルールを守ること。
 
 【子ども向け】
-・必ず1〜2文にする
+・必ず2～3文にする
 ・ひらがな多め
 ・名前やチーム名はカタカナ
 ・やさしい言葉で書く
@@ -83,8 +92,11 @@ parent:
 ・なければ false
 ・危険な場合は実際の言葉をそのまま抜き出す
 ・抽象表現は禁止
+・補足は禁止
 ・最も強い言葉を優先（例：死ね、消えろ）
 ・理由は日本語で書く
+・その後に必ず日本語訳をカッコでつける
+・文章でかく
 
 【出力形式】
 
@@ -92,7 +104,7 @@ safety_flag:
 true or false
 
 reason:
-〇〇
+英語（日本語訳）
 `,
         },
         {
