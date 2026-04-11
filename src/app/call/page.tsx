@@ -18,6 +18,7 @@ export default function CallPage() {
   const [callEnded, setCallEnded] = useState(false)
   const searchParams = useSearchParams()
   const sessionId = searchParams.get('sessionId') ?? ''
+  const myChildId = searchParams.get('childId') ?? ''
 
   return (
     <div className="relative h-screen w-full overflow-hidden flex flex-col">
@@ -38,7 +39,7 @@ export default function CallPage() {
         </div>
         {/* 中央：映像 */}
         <div className="flex-1 flex flex-col gap-3 justify-center items-center w-full">
-          <VideoGrid sessionId={sessionId} />
+          <VideoGrid sessionId={sessionId} myChildId={myChildId} />
         </div>
         {/* 下部：操作ボタン */}
         <div className="h-[15%] flex items-end justify-center pb-4">
