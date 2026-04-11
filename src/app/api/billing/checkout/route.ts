@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createServerClient } from '@supabase/ssr'
@@ -78,5 +77,4 @@ export async function POST() {
     console.error(error)
     return NextResponse.json({ error: 'Checkout failed' }, { status: 500 })
   }
-
 }
