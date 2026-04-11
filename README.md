@@ -102,8 +102,7 @@ src/
 │
 └── supabase/
     └── sql/                    # テーブル定義SQL（Supabaseで実行）
-        ├── create_sessions.sql     # B担当
-        └── create_ai_hints.sql     # A担当
+        └── create_sessions.sql     # B担当
 
 ```
 
