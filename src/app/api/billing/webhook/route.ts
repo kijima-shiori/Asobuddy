@@ -79,8 +79,5 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ received: true })
-=======
-export async function POST() {
-  return new Response('OK')
->>>>>>> a9379467ed1fb1c987781854f7c4552528a1a271
 }
+
