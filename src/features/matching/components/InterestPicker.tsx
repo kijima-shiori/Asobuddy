@@ -19,13 +19,13 @@ const HOBBIES = [
 export default function InterestPicker() {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
 
-  const supabase = getSupabase()
-
   // 仮のID（自分のSupabaseからコピーしたUUID）
   const userId = '99999999-4656-4939-9ee4-cd2b9e7a5884'
 
   //---------------  趣味保存ボタンを押したときに実行される内容
   const handleSave = async () => {
+    const supabase = getSupabase()
+
     const insertData = selectedIds.map((catId) => ({
       child_id: userId,
       category_id: catId,
