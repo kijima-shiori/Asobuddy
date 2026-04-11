@@ -1,6 +1,6 @@
 'use client'
 
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
@@ -11,11 +11,12 @@ export const useMatchRealtime = (sessionId: string | undefined) => {
     // sessionIdが決まっていなかったら無視
     if (!sessionId) return
 
+    const supabase = getSupabase()
     // 監視用のチャンネルを作る
     const channel = supabase
       // .channelは通信回線を開く命令
       .channel(`matching_${sessionId}`)
-      //   「〜の時に（on）」動くしれい
+      //   「〜の時に（on）」動く指令
       .on(
         'postgres_changes',
         {
@@ -28,7 +29,9 @@ export const useMatchRealtime = (sessionId: string | undefined) => {
         (payload) => {
           console.log('テーブルが更新されました', payload)
 
-          if (payload.new.status === 'matched') {
+          const newData = payload.new as Record<string, unknown>
+
+          if (newData && newData.status === 'matched') {
             console.log('マッチング成功！')
             router.push(`/matching/success?session_id=${sessionId}`)
           }

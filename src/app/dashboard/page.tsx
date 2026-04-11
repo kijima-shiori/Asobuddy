@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -11,18 +11,17 @@ export default function DashboardPage() {
   // ログインチェック
   // TODO: データベースからChild IDを反映する。（仮でIDをベタ打ちしています）
   useEffect(() => {
-    const checkUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+    async function checkSession() {
+      const supabase = getSupabase()
+      const { data } = await supabase.auth.getSession()
 
-      if (!session) {
+      if (!data.session) {
         router.push('/signin')
       } else {
         setLoading(false)
       }
     }
-    checkUser()
+    checkSession()
   }, [router])
 
   const userId = '99999999-4656-4939-9ee4-cd2b9e7a5884'

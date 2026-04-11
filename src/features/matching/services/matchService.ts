@@ -1,7 +1,8 @@
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 
 // 生存報告（Heartbeat)を送る関数
 export const sendHeartbeat = async (sessionId: string) => {
+  const supabase = getSupabase()
   const { error } = await supabase
     .from('sessions')
     .update({ updated_at: new Date().toISOString() })
@@ -21,6 +22,7 @@ export const sendHeartbeat = async (sessionId: string) => {
 export const createSession = async (userId: string) => {
   // 15秒間Heartbeatが確認できなかった人を除外する
   const fifteenSecondAgo = new Date(Date.now() - 15 * 1000).toISOString()
+  const supabase = getSupabase()
   await supabase
     .from('sessions')
     .delete()
