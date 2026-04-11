@@ -41,4 +41,3 @@ jobs:
           STRIPE_PRICE_ID: ${{ secrets.STRIPE_PRICE_ID }}
           STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
-
