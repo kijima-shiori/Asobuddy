@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 
 const HOBBIES = [
   { id: '1b3d6e76-449f-46e5-99b6-489b1d4d36d9', label: 'アニメ' },
@@ -18,6 +18,8 @@ const HOBBIES = [
 
 export default function InterestPicker() {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+
+  const supabase = getSupabase()
 
   // 仮のID（自分のSupabaseからコピーしたUUID）
   const userId = '99999999-4656-4939-9ee4-cd2b9e7a5884'
