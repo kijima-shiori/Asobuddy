@@ -5,17 +5,24 @@ import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation' // ★ 追加
 
 export default function BillingSuccessPage() {
-  const router = useRouter() // ★ 追加
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
+  const router = useRouter()
+  const [supabase, setSupabase] = useState<ReturnType<
+    typeof createClient
+  > | null>(null)
 
   const [periodStart, setPeriodStart] = useState<Date | null>(null)
   const [periodEnd, setPeriodEnd] = useState<Date | null>(null)
 
   useEffect(() => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    const client = createClient(url, key)
+    setSupabase(client)
+  }, [])
+
+  useEffect(() => {
+    if (!supabase) return
+
     const fetchSubscription = async () => {
       const {
         data: { user },

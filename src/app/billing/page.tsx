@@ -1,16 +1,26 @@
 'use client'
 
-import { loadStripe } from '@stripe/stripe-js'
+import { useEffect, useState } from 'react'
+import { loadStripe, Stripe } from '@stripe/stripe-js'
 import { Elements } from '@stripe/react-stripe-js'
 import CheckoutForm from './CheckoutForm'
 import { useRouter } from 'next/navigation'
 
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
-)
-
 export default function BillingPage() {
   const router = useRouter()
+  const [stripePromise, setStripePromise] = useState<Stripe | null>(null)
+
+  useEffect(() => {
+    const init = async () => {
+      const stripe = await loadStripe(
+        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
+      )
+      setStripePromise(stripe)
+    }
+    init()
+  }, [])
+
+  if (!stripePromise) return null // ローディング中
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
