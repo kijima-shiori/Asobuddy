@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 'use client'
 
 import { useAiHint } from '@/features/call/hooks/useAiHint'
@@ -14,7 +13,6 @@ export default function AiHintPanel({ sessionId, myChildId }: Props) {
 
   return (
     <div className="relative w-full flex items-center px-2">
-      {/* 吹き出し */}
       <div className="relative bg-white rounded-2xl px-4 py-3 shadow-md flex-1 mr-2">
         <div
           className="absolute right-[-10px] top-4 w-0 h-0 
@@ -22,15 +20,11 @@ export default function AiHintPanel({ sessionId, myChildId }: Props) {
           border-l-[10px] border-l-white 
           border-b-[8px] border-b-transparent"
         />
-        <p
-          className={`text-sm font-bold ${loading ? 'text-gray-300' : 'text-gray-700'}`}
-        >
+        <p className={`text-sm font-bold ${loading ? 'text-gray-300' : 'text-gray-700'}`}>
           {hint}
         </p>
         {loading && <span className="text-xs text-gray-400 ml-1">...</span>}
       </div>
-
-      {/* キャラクター */}
       <div className="w-12 h-16 flex-shrink-0">
         <Image
           src="/images/girl.png"
@@ -42,8 +36,4 @@ export default function AiHintPanel({ sessionId, myChildId }: Props) {
       </div>
     </div>
   )
-=======
-export default function AiHintPanel() {
-  return <div>AIヒント</div>
->>>>>>> development
 }
