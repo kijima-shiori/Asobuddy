@@ -1,3 +1,3 @@
 export default function AiHintPanel() {
-  return <div>AIヒント</div>;
+  return <div>AIヒント</div>
 }
