@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 
 type UsedWord = {
   en: string
@@ -21,6 +22,7 @@ export default function ReportPage() {
   const [loading, setLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [data, setData] = useState<ReportData | null>(null)
+  const router = useRouter()
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-black text-white overflow-hidden">
@@ -34,15 +36,15 @@ export default function ReportPage() {
         }}
       />
       <motion.div
-        className="absolute top-16 left-12 z-0"
+        className="absolute top-10 left-4 sm:top-16 sm:left-12 z-0"
         animate={{ y: [0, -10, 0] }}
         transition={{ repeat: Infinity, duration: 3 }}
       >
         <Image
           src="/images/kids-rocket.png"
           alt="kids rocket"
-          width={180}
-          height={180}
+          width={230}
+          height={230}
         />
       </motion.div>
 
@@ -55,7 +57,7 @@ export default function ReportPage() {
         animate={{ opacity: 1, y: 0 }}
         className="relative z-10 bg-white/90 backdrop-blur-md text-black rounded-3xl p-8 w-[90%] max-w-md shadow-lg"
       >
-        <h2 className="text-3xl font-bold text-[#3c6e71] text-center mb-4">
+        <h2 className="text-2xl sm:text-3xl font-bold text-[#3c6e71] text-center mb-4">
           🌟 きょうのおはなし🌟
         </h2>
         <div className="mb-4 text-center z-20">
@@ -71,6 +73,8 @@ export default function ReportPage() {
                 // 🟢 Whisper
                 const formData = new FormData()
                 formData.append('file', file)
+
+                setLoading(true)
 
                 const res1 = await fetch('/api/transcribe', {
                   method: 'POST',
@@ -94,6 +98,8 @@ export default function ReportPage() {
               } catch (err) {
                 console.error(err)
                 alert('音声処理に失敗しました')
+              } finally {
+                setLoading(false)
               }
             }}
           />
@@ -129,7 +135,7 @@ export default function ReportPage() {
 
         <button
           className="w-full bg-[#ff914d] text-white py-3 rounded-xl mt-4 shadow-md"
-          onClick={() => (window.location.href = '/')}
+          onClick={() => router.push('/dashboard')}
         >
           HOMEへ
         </button>
