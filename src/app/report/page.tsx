@@ -1,19 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
-type UsedWord = {
-  en: string
-  jp: string
-}
-
 type ReportData = {
   child: string
   parent: string
-  safety_flag: string
+  safety_flag: boolean
   reason: string
   //used_words: UsedWord[]
 }
@@ -125,10 +120,10 @@ export default function ReportPage() {
 
             <p
               className={`mt-2 text-xs font-semibold ${
-                data.safety_flag === 'safe' ? 'text-green-500' : 'text-red-500'
+                data.safety_flag ? 'text-green-500' : 'text-red-500'
               }`}
             >
-              安全判定: {data.safety_flag}（{data.reason}）
+              安全判定: {data.safety_flag ? 'safe' : 'danger'}（{data.reason}）
             </p>
           </div>
         )}

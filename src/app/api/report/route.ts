@@ -113,12 +113,16 @@ reason:
     const reason = safetyContent.match(/reason:\n([\s\S]*)/)?.[1]?.trim() ?? ''
 
     // 💾 DB保存
-    await supabase.from('call_reports').insert({
+    const { error } = await supabase.from('call_reports').insert({
       session_id: crypto.randomUUID(),
       summary: parent,
       transcript_url: null,
       safety_flag,
     })
+
+    if (error) {
+      console.error('Insert error:', error.message)
+    }
 
     return NextResponse.json({
       child,
