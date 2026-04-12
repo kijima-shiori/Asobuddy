@@ -10,19 +10,25 @@ import { useAgoraCall } from '@/features/call/hooks/useAgoraCall'
 // clientをここで作る
 const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' })
 
-function VideoGridInner({ sessionId }: { sessionId: string }) {
+function VideoGridInner({
+  sessionId,
+  myChildId,
+}: {
+  sessionId: string
+  myChildId: string
+}) {
+  // 1. useAgoraCallから値を取り出す
   const {
-    localMicrophoneTrack,
-    localCameraTrack,
-    remoteUsers,
+    localMicrophoneTrack, // マイクの音声
+    localCameraTrack, // カメラの映像
+    remoteUsers, // 相手の一覧
     micOn,
     cameraOn,
-  } = useAgoraCall('test-channel', sessionId)
-
-  console.log('remoteUsers:', remoteUsers)
+  } = useAgoraCall(sessionId, sessionId, myChildId)
 
   return (
-    <div className="flex flex-col gap-4 p-4 h-full">
+    <div className="flex flex-col gap-4 p-4 h-full w-full">
+      {/* 相手の映像：メインで大きく表示 */}
       <div className="relative flex-1 bg-slate-900 rounded-3xl overflow-hidden shadow-xl border-4 border-orange-200 min-h-[300px]">
         {remoteUsers.length > 0 ? (
           remoteUsers.map((user) => (
@@ -42,7 +48,7 @@ function VideoGridInner({ sessionId }: { sessionId: string }) {
           おともだち
         </div>
       </div>
-
+      {/* 自分の映像：少し小さめに表示 */}
       <div className="relative h-48 bg-slate-800 rounded-2xl overflow-hidden shadow-lg border-4 border-blue-200 self-end w-full md:w-1/3">
         <LocalUser
           audioTrack={localMicrophoneTrack}
@@ -60,10 +66,16 @@ function VideoGridInner({ sessionId }: { sessionId: string }) {
 }
 
 // AgoraRTCProviderで包んでexport
-export default function VideoGrid({ sessionId }: { sessionId: string }) {
+export default function VideoGrid({
+  sessionId,
+  myChildId,
+}: {
+  sessionId: string
+  myChildId: string
+}) {
   return (
     <AgoraRTCProvider client={client}>
-      <VideoGridInner sessionId={sessionId} />
+      <VideoGridInner sessionId={sessionId} myChildId={myChildId} />
     </AgoraRTCProvider>
   )
 }
