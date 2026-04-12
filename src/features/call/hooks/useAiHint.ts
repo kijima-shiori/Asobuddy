@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect, useRef } from "react";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 
-const SILENCE_THRESHOLD_SECONDS = 30
+const SILENCE_THRESHOLD_SECONDS = 5
 
 export function useAiHint(sessionId: string, myChildId: string) {
   const [hint, setHint] = useState<string>("会話がとぎれたらヒントが出るよ！")
@@ -15,6 +15,8 @@ export function useAiHint(sessionId: string, myChildId: string) {
   // Supabaseから両者の趣味タグを取得（初回のみ）
   const fetchCategories = async () => {
     if (categoriesRef.current) return categoriesRef.current
+
+    const supabase = getSupabase()
 
     try {
       // sessionsテーブルからchild_a_id, child_b_idを取得
@@ -71,9 +73,12 @@ export function useAiHint(sessionId: string, myChildId: string) {
   }
 
   // OpenAIでヒントを生成
-  const generateHint = async () => {
-    if (loading || !sessionId) return
-    setLoading(true)
+const generateHint = async () => {
+  console.log("generateHint呼ばれた！")
+  if (loading || !sessionId) return
+  setLoading(true)
+  console.log("sessionId:", sessionId) 
+  console.log("myChildId:", myChildId) 
 
     try {
       const { my, opponent } = await fetchCategories()
@@ -93,6 +98,7 @@ export function useAiHint(sessionId: string, myChildId: string) {
 
   // 沈黙タイマーをリセット（音声検知時に呼ぶ）
   const resetSilenceTimer = () => {
+      console.log("resetSilenceTimer呼ばれた！")
     if (silenceTimerRef.current) {
       clearTimeout(silenceTimerRef.current)
     }
