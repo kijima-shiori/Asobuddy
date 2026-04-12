@@ -5,7 +5,6 @@ import { cookies } from 'next/headers'
 
 export async function POST() {
   try {
-
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
     const supabase = createServerClient(
       process.env.SUPABASE_URL!,
