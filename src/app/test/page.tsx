@@ -5,39 +5,49 @@ import { useState } from 'react'
 export default function TestPage() {
   const [childText, setChildText] = useState('')
   const [parentText, setParentText] = useState('')
+  const [reason, setReason] = useState('')
+  const [safetyFlag, setSafetyFlag] = useState(false)
 
   const handleUpload = async (file: File) => {
     try {
+      console.log('① upload開始')
+
       const formData = new FormData()
       formData.append('file', file)
 
-      // Whisper
+      console.log('② transcribe呼ぶ')
+
       const res = await fetch('/api/transcribe', {
         method: 'POST',
         body: formData,
       })
 
-      const data = await res.json()
-      const transcript = data.text
-      const transcriptUrl = data.transcriptUrl // ★追加
-      console.log('Transcript:', transcript)
+      console.log('③ transcribe返ってきた')
 
-      // report
+      const data = await res.json()
+      console.log('④ transcript:', data)
+
+      const transcript = data.text
+
+      console.log('⑤ report呼ぶ')
+
       const reportRes = await fetch('/api/report', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ transcript, transcriptUrl }), // ★transcriptUrlも送る
+        body: JSON.stringify({ transcript }),
       })
 
+      console.log('⑥ report返ってきた')
+
       const reportData = await reportRes.json()
+      console.log('⑦ result:', reportData)
 
-      console.log('結果👇', reportData)
-
-      // UIに反映
       setChildText(reportData.child)
       setParentText(reportData.parent)
+      setReason(reportData.reason)
+      setSafetyFlag(reportData.safety_flag)
     } catch (e) {
       console.error('❌エラー', e)
     }
@@ -54,20 +64,24 @@ export default function TestPage() {
         }}
         onChange={(e) => {
           const files = (e.target as HTMLInputElement).files
-
           if (!files || files.length === 0) return
-
           handleUpload(files[0])
         }}
       />
 
-      {/* 👇 UI表示 */}
       <div style={{ marginTop: 30 }}>
         <h2>子ども向け</h2>
         <p style={{ whiteSpace: 'pre-line' }}>{childText}</p>
 
         <h2 style={{ marginTop: 20 }}>保護者向け</h2>
         <p style={{ whiteSpace: 'pre-line' }}>{parentText}</p>
+
+        {safetyFlag && (
+          <div style={{ marginTop: 20, color: 'red' }}>
+            <h3>⚠️ 注意が必要な発言</h3>
+            <p>{reason}</p>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 'use client'
 
 import { useAiHint } from '@/features/call/hooks/useAiHint'
@@ -41,4 +42,8 @@ export default function AiHintPanel({ sessionId, myChildId }: Props) {
       </div>
     </div>
   )
+=======
+export default function AiHintPanel() {
+  return <div>AIヒント</div>
+>>>>>>> development
 }

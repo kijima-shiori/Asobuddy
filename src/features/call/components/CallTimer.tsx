@@ -1,3 +1,3 @@
 export default function CallTimer() {
-  return <div>タイマー</div>;
+  return <div>タイマー</div>
 }

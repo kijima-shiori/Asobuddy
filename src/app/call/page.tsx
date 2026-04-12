@@ -37,7 +37,11 @@ export default function CallPage() {
         </div>
         {/* 中央：映像 */}
         <div className="flex-1 flex flex-col gap-3 justify-center items-center w-full">
+<<<<<<< HEAD
           <VideoGrid sessionId={sessionId} myChildId={myChildId} />
+=======
+          <VideoGrid />
+>>>>>>> development
         </div>
         {/* 下部：操作ボタン */}
         <div className="h-[15%] flex items-end justify-center pb-4">
