@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { createClient, type SupabaseClient  } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation' // ★ 追加
 
 export default function BillingSuccessPage() {
