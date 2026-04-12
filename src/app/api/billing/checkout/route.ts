@@ -3,10 +3,10 @@ import Stripe from 'stripe'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
-
 export async function POST() {
   try {
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
     const supabase = createServerClient(
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
