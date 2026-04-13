@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
@@ -14,7 +14,7 @@ const VideoGrid = dynamic(
   { ssr: false },
 )
 
-export default function CallPage() {
+function CallPageInner() {
   const [callEnded, setCallEnded] = useState(false)
   const searchParams = useSearchParams()
   const sessionId = searchParams.get('sessionId') ?? ''
@@ -47,5 +47,13 @@ export default function CallPage() {
         {callEnded && <CallEndScreen />}
       </div>
     </div>
+  )
+}
+
+export default function CallPage() {
+  return (
+    <Suspense fallback={<div>読み込み中...</div>}>
+      <CallPageInner />
+    </Suspense>
   )
 }

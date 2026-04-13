@@ -20,7 +20,9 @@ export default function AiHintPanel({ sessionId, myChildId }: Props) {
           border-l-[10px] border-l-white 
           border-b-[8px] border-b-transparent"
         />
-        <p className={`text-sm font-bold ${loading ? 'text-gray-300' : 'text-gray-700'}`}>
+        <p
+          className={`text-sm font-bold ${loading ? 'text-gray-300' : 'text-gray-700'}`}
+        >
           {hint}
         </p>
         {loading && <span className="text-xs text-gray-400 ml-1">...</span>}
