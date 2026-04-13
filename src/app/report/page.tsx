@@ -31,6 +31,11 @@ export default function ReportPage() {
         setLoading(true)
 
         const res = await fetch(`/api/report?sessionId=${sessionId}`)
+
+        if (!res.ok) {
+          throw new Error('fetch failed')
+        }
+
         const result = await res.json()
 
         setData(result)
@@ -101,6 +106,8 @@ export default function ReportPage() {
                     method: 'POST',
                     body: formData,
                   })
+
+                  if (!res1.ok) throw new Error('transcribe failed')
 
                   const { text } = await res1.json()
 
