@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useEffect } from 'react'
 
 type ReportData = {
   child: string
@@ -18,6 +20,30 @@ export default function ReportPage() {
   const [isOpen, setIsOpen] = useState(false)
   const [data, setData] = useState<ReportData | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const sessionId = searchParams.get('sessionId')
+
+  useEffect(() => {
+    if (!sessionId) return
+
+    const fetchReport = async () => {
+      try {
+        setLoading(true)
+
+        const res = await fetch(`/api/report?sessionId=${sessionId}`)
+        const result = await res.json()
+
+        setData(result)
+      } catch (err) {
+        console.error(err)
+        alert('レポートの取得に失敗しました')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchReport()
+  }, [sessionId])
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-black text-white overflow-hidden">
@@ -56,55 +82,55 @@ export default function ReportPage() {
           🌟 きょうのおはなし🌟
         </h2>
         <div className="mb-4 text-center z-20">
-          <input
-            type="file"
-            accept="audio/*"
-            className="mb-2 bg-white text-black p-2 rounded"
-            onChange={async (e) => {
-              const file = e.target.files?.[0]
-              if (!file) return
+          {!sessionId && (
+            <input
+              type="file"
+              accept="audio/*"
+              className="mb-2 bg-white text-black p-2 rounded"
+              onChange={async (e) => {
+                const file = e.target.files?.[0]
+                if (!file) return
 
-              try {
-                // 🟢 Whisper
-                const formData = new FormData()
-                formData.append('file', file)
+                try {
+                  const formData = new FormData()
+                  formData.append('file', file)
 
-                setLoading(true)
+                  setLoading(true)
 
-                const res1 = await fetch('/api/transcribe', {
-                  method: 'POST',
-                  body: formData,
-                })
+                  const res1 = await fetch('/api/transcribe', {
+                    method: 'POST',
+                    body: formData,
+                  })
 
-                const { text } = await res1.json()
-                console.log('transcript👉', text)
+                  const { text } = await res1.json()
 
-                // 🟢 GPT要約
-                const res2 = await fetch('/api/report', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ transcript: text }),
-                })
+                  const res2 = await fetch('/api/report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ transcript: text }),
+                  })
 
-                const result = await res2.json()
-                console.log('report👉', result)
-
-                setData(result)
-              } catch (err) {
-                console.error(err)
-                alert('音声処理に失敗しました')
-              } finally {
-                setLoading(false)
-              }
-            }}
-          />
+                  const result = await res2.json()
+                  setData(result)
+                } catch (err) {
+                  console.error(err)
+                  alert('音声処理に失敗しました')
+                } finally {
+                  setLoading(false)
+                }
+              }}
+            />
+          )}
 
           <p className="text-xs text-gray-500">
-            音声ファイルを選択するとレポートが生成されます
+            {sessionId
+              ? '通話内容からレポートを表示しています'
+              : '音声ファイルを選択するとレポートが生成されます'}
           </p>
         </div>
         <p className="text-lg text-center leading-relaxed mb-6">
-          {data?.child ?? '音声を選択してください'}
+          {data?.child ??
+            (sessionId ? '読み込み中...' : '音声を選択してください')}
         </p>
 
         <button
@@ -123,7 +149,8 @@ export default function ReportPage() {
                 data.safety_flag ? 'text-green-500' : 'text-red-500'
               }`}
             >
-              安全判定: {data.safety_flag ? 'safe' : 'danger'}（{data.reason}）
+              安全判定: {data.safety_flag ? '危険あり' : '問題なし'}（
+              {data.reason}）
             </p>
           </div>
         )}

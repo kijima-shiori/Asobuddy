@@ -3,6 +3,44 @@ import OpenAI from 'openai'
 import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
+export async function GET(req: NextRequest) {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    )
+
+    const { searchParams } = new URL(req.url)
+    const sessionId = searchParams.get('sessionId')
+
+    if (!sessionId) {
+      return NextResponse.json({ error: 'sessionId required' }, { status: 400 })
+    }
+
+    const { data, error } = await supabase
+      .from('call_reports')
+      .select('*')
+      .eq('session_id', sessionId)
+      .single()
+
+    if (error || !data) {
+      return NextResponse.json({ error: 'Report not found' }, { status: 404 })
+    }
+
+    return NextResponse.json({
+      child: data.child_summary ?? '',
+      parent: data.summary ?? '',
+      safety_flag: data.safety_flag ?? false,
+      reason: data.reason ?? '',
+    })
+  } catch (error) {
+    console.error(error)
+    return NextResponse.json(
+      { error: 'Failed to fetch report' },
+      { status: 500 },
+    )
+  }
+}
 export async function POST(req: NextRequest) {
   try {
     const supabase = createClient(
@@ -107,10 +145,11 @@ reason:
 
     const safetyContent = safetyRes.choices[0].message.content ?? ''
 
-    const safety_flag =
-      safetyContent.match(/safety_flag:\n(true|false)/)?.[1] === 'true'
+    const safetyMatch = safetyContent.match(/safety_flag:\s*(true|false)/i)
+    const safety_flag = safetyMatch?.[1]?.toLowerCase() === 'true'
 
-    const reason = safetyContent.match(/reason:\n([\s\S]*)/)?.[1]?.trim() ?? ''
+    const reason =
+      safetyContent.match(/reason:\s*([\s\S]*)/i)?.[1]?.trim() ?? ''
 
     // 💾 DB保存
     const { error } = await supabase.from('call_reports').insert({
