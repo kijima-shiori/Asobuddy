@@ -69,11 +69,17 @@ function CallPageInner() {
       <div className="relative z-10 flex flex-col h-full max-w-md mx-auto w-full px-6 py-8">
         {/* 上部：AIヒント */}
         <div className="h-[20%] flex items-center justify-center">
-          <AiHintPanel sessionId={sessionId} myChildId={myChildId} />
+          {sessionId && (
+            <AiHintPanel sessionId={sessionId} myChildId={myChildId} />
+          )}
         </div>
         {/* 中央：映像 */}
         <div className="flex-1 flex flex-col gap-3 justify-center items-center w-full">
-          <VideoGrid sessionId={sessionId} myChildId={myChildId} />
+          {sessionId && myChildId ? (
+            <VideoGrid sessionId={sessionId} myChildId={myChildId} />
+          ) : (
+            <div className="text-white text-center">じゅんび中...</div>
+          )}
         </div>
         {/* 下部：操作ボタン */}
         <div className="h-[15%] flex items-end justify-center pb-4">

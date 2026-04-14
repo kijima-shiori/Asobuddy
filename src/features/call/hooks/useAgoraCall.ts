@@ -10,7 +10,7 @@ import {
 import { useState, useEffect } from "react";
 
 // myChildIdを引数で受け取りAgoraのuidに変換する
-export function useAgoraCall(channelName: string, sessionId: string, mychildId: string) {
+export function useAgoraCall(channelName: string, sessionId: string, myChildId: string) {
   const [token, setToken] = useState("")
   const [ready, setReady] = useState(false)
   const [micOn, setMicOn] = useState(true)
@@ -20,11 +20,11 @@ export function useAgoraCall(channelName: string, sessionId: string, mychildId: 
 
   // childIdから数値UIDを生成（Agora用）＋UUIDも保持（DB用）
   useEffect(() => {
-    if (!mychildId) return
-    const numericUid = parseInt(mychildId.replace(/-/g, '').slice(0, 8), 16)
+    if (!myChildId) return
+    const numericUid = parseInt(myChildId.replace(/-/g, '').slice(0, 8), 16)
     setUid(numericUid)       // Agora用
-    setChildUuid(mychildId)    // DB保存用
-  }, [mychildId])
+    setChildUuid(myChildId)  // DB保存用
+  }, [myChildId])
 
   // デバッグ用
   useEffect(() => {
@@ -67,7 +67,7 @@ export function useAgoraCall(channelName: string, sessionId: string, mychildId: 
     fetch("/api/calls/start", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId, childUuid }) // childUuidも送る
+      body: JSON.stringify({ sessionId, childUuid })
     })
   }, [ready, sessionId])
 
