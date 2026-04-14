@@ -6,57 +6,55 @@ import {
   useLocalCameraTrack,
   usePublish,
   useRemoteUsers,
-} from 'agora-rtc-react'
-import { useState, useEffect } from 'react'
+} from "agora-rtc-react";
+import { useState, useEffect } from "react";
 
-export function useAgoraCall(
-  channelName: string,
-  sessionId: string,
-  myChildId: string,
-) {
-  const [token, setToken] = useState('')
+// myChildIdを引数で受け取りAgoraのuidに変換する
+export function useAgoraCall(channelName: string, sessionId: string, mychildId: string) {
+  const [token, setToken] = useState("")
   const [ready, setReady] = useState(false)
   const [micOn, setMicOn] = useState(true)
   const [cameraOn, setCameraOn] = useState(true)
   const [uid, setUid] = useState<number | null>(null)
-  const [childUuid, setChildUuid] = useState<string | null>(null)
+  const [childUuid, setChildUuid] = useState<string | null>(null) // DB保存用
 
-  // myChildIdから数値UIDを生成（Agora用）＋UUIDも保持（DB用）
+  // childIdから数値UIDを生成（Agora用）＋UUIDも保持（DB用）
   useEffect(() => {
-    if (!myChildId) return
-    const numericUid = parseInt(myChildId.replace(/-/g, '').slice(0, 8), 16)
-    setUid(numericUid)
-    setChildUuid(myChildId)
-  }, [myChildId])
+    if (!mychildId) return
+    const numericUid = parseInt(mychildId.replace(/-/g, '').slice(0, 8), 16)
+    setUid(numericUid)       // Agora用
+    setChildUuid(mychildId)    // DB保存用
+  }, [mychildId])
 
   // デバッグ用
   useEffect(() => {
-    console.log('token:', token)
-    console.log('ready:', ready)
-    console.log('uid:', uid)
-    console.log('childUuid:', childUuid)
+    console.log("token:", token)
+    console.log("ready:", ready)
+    console.log("uid:", uid)
+    console.log("childUuid:", childUuid)
   }, [token, ready, uid, childUuid])
 
   // トークン取得（uidが取得できてから実行）
   useEffect(() => {
     if (uid === null) return
+    if (!channelName) return
 
     const fetchToken = async () => {
       try {
-        const response = await fetch('/api/calls/token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ channelName: channelName, uid: uid }),
+        const response = await fetch("/api/calls/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ channelName: channelName, uid: uid })
         })
-        if (!response.ok) throw new Error('Token API failed')
+
+        if (!response.ok) throw new Error("Token API failed")
+
         const data = await response.json()
         setToken(data.token)
         setReady(true)
       } catch (e) {
-        console.error('Failed to fetch token:', e)
-        alert(
-          '通話に必要なトークンの取得に失敗しました。再読み込みしてください。',
-        )
+        console.error("Failed to fetch token:", e)
+        alert("通話に必要なトークンの取得に失敗しました。再読み込みしてください。")
       }
     }
     fetchToken()
@@ -65,10 +63,11 @@ export function useAgoraCall(
   // 通話開始APIを呼び出す
   useEffect(() => {
     if (!ready || !sessionId) return
-    fetch('/api/calls/start', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId, childUuid }),
+
+    fetch("/api/calls/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId, childUuid }) // childUuidも送る
     })
   }, [ready, sessionId])
 
@@ -80,15 +79,12 @@ export function useAgoraCall(
 
   const shouldJoin = ready && !!token && !!uid
 
-  useJoin(
-    {
-      appid: process.env.NEXT_PUBLIC_AGORA_APP_ID!,
-      channel: channelName,
-      token: token,
-      uid: uid!,
-    },
-    shouldJoin,
-  )
+  useJoin({
+    appid: process.env.NEXT_PUBLIC_AGORA_APP_ID!,
+    channel: channelName,
+    token: token,
+    uid: uid!,
+  }, shouldJoin)
 
   return {
     localMicrophoneTrack,
