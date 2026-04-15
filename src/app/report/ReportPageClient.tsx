@@ -22,9 +22,11 @@ export default function ReportPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const sessionId = searchParams.get('sessionId')
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     if (!sessionId) return
+    console.log('📡 report fetch start:', sessionId)
 
     const fetchReport = async () => {
       try {
@@ -39,11 +41,14 @@ export default function ReportPage() {
         const result = await res.json()
 
         setData(result)
+        console.log('✅ report fetch success:', result)
+        setError(false) // ←成功時リセット（エラーが解消された場合に備えて）
       } catch (err) {
         console.error(err)
-        alert('レポートの取得に失敗しました')
+        setError(true)
+        setData(null) // ←エラー時にデータをクリアして、古いデータが表示されないようにする
       } finally {
-        setLoading(false)
+        setLoading(false) // ← これを追加して、エラーが発生してもローディング状態を解除する
       }
     }
 
@@ -75,8 +80,11 @@ export default function ReportPage() {
       </motion.div>
 
       {loading && (
-        <p className="text-center text-sm text-gray-500 mb-2">AIが考え中...</p>
+        <p className="text-center text-sm text-gray-500 mb-2">
+          レポートさくせい中...
+        </p>
       )}
+
       {/* 🧾 カード */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -111,17 +119,24 @@ export default function ReportPage() {
 
                   const { text } = await res1.json()
 
+                  console.log('📡 report generate start')
+
                   const res2 = await fetch('/api/report', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ transcript: text }),
+                    body: JSON.stringify({
+                      transcript: text,
+                      sessionId: sessionId ?? undefined,
+                    }),
                   })
 
                   const result = await res2.json()
+
+                  console.log('✅ report generate success:', result)
+
                   setData(result)
                 } catch (err) {
                   console.error(err)
-                  alert('音声処理に失敗しました')
                 } finally {
                   setLoading(false)
                 }
@@ -139,6 +154,11 @@ export default function ReportPage() {
           {data?.child ??
             (sessionId ? '読み込み中...' : '音声を選択してください')}
         </p>
+        {error && ( //エラーフラグがtrueのときにエラーメッセージを表示
+          <p className="text-red-500 mt-4 text-center">
+            レポートの取得に失敗しました
+          </p>
+        )}
 
         <button
           onClick={() => setIsOpen(!isOpen)}

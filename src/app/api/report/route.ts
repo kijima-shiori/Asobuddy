@@ -49,14 +49,14 @@ export async function POST(req: NextRequest) {
     )
     const body = await req.json()
 
-    if (!body?.transcript) {
+    if (!body?.transcript || !body?.sessionId) {
       return NextResponse.json(
-        { error: 'transcript required' },
+        { error: 'transcript and sessionId required' },
         { status: 400 },
       )
     }
 
-    const transcript: string = body.transcript
+    const { transcript, sessionId } = body
 
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
@@ -153,14 +153,16 @@ reason:
 
     // 💾 DB保存
     const { error } = await supabase.from('call_reports').insert({
-      session_id: crypto.randomUUID(),
+      session_id: sessionId,
       summary: parent,
       transcript_url: null,
       safety_flag,
+      reason,
     })
 
     if (error) {
       console.error('Insert error:', error.message)
+      return NextResponse.json({ error: 'DB insert failed' }, { status: 500 })
     }
 
     return NextResponse.json({
