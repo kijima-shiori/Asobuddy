@@ -10,8 +10,6 @@ export default function ProfilePage() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
 
-  const supabase = createClient(url, key)
-
   const [birthday, setBirthday] = useState('')
   const [gender, setGender] = useState('')
   const [nativeLanguage, setNativeLanguage] = useState('')
@@ -38,6 +36,7 @@ export default function ProfilePage() {
   }
 
   const handleSave = async () => {
+    const supabase = createClient(url, key)
     const {
       data: { user },
     } = await supabase.auth.getUser()
@@ -48,21 +47,26 @@ export default function ProfilePage() {
 
     if (iconFile) {
       const filePath = `icons/${user.id}-${Date.now()}.png`
-      const { error } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('child-icons')
         .upload(filePath, iconFile)
 
-      if (!error) {
-        const { data: urlData } = supabase.storage
-          .from('child-icons')
-          .getPublicUrl(filePath)
-        icon_url = urlData.publicUrl
+      if (uploadError) {
+        console.error(uploadError)
+        alert('画像アップロードに失敗しました')
+        return
       }
+
+      const { data: urlData } = supabase.storage
+        .from('child-icons')
+        .getPublicUrl(filePath)
+
+      icon_url = urlData.publicUrl
     }
 
     const age = calcAge(birthday)
 
-    await supabase.from('children').upsert({
+    const { error: upsertError } = await supabase.from('children').upsert({
       user_id: user.id,
       birthday,
       age,
@@ -70,6 +74,12 @@ export default function ProfilePage() {
       native_language: nativeLanguage,
       icon_url,
     })
+
+    if (upsertError) {
+      console.error(upsertError)
+      alert('プロフィールの保存に失敗しました')
+      return
+    }
 
     alert('プロフィールを保存しました')
   }
