@@ -19,4 +19,7 @@ export interface PartnerProfile {
   gender: string
   native_language: string
   icon_url: string | null
+  birthday: string
+  age?: number
+  hobbies: { id: string; name: string }[]
 }

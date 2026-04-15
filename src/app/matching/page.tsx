@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation'
 import { Session } from '@/types'
 
 export default function MatchingPage() {
-  const userId = '99999999-4656-4939-9ee4-cd2b9e7a5884'
+  const userId = '17b0a1d9-4656-4939-9ee4-cd2b9e7a5884'
   const isStarted = useRef(false)
   const router = useRouter()
 
