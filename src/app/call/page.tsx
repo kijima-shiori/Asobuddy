@@ -15,7 +15,7 @@ const VideoGrid = dynamic(
 )
 
 function CallPageInner() {
-  const [callEnded, setCallEnded] = useState(false)
+  const [callEnded] = useState(false)
   const [sessionId, setSessionId] = useState<string>('')
   const [myChildId, setMyChildId] = useState<string>('')
 
@@ -69,9 +69,7 @@ function CallPageInner() {
       <div className="relative z-10 flex flex-col h-full max-w-md mx-auto w-full px-6 py-8">
         {/* 上部：AIヒント */}
         <div className="h-[20%] flex items-center justify-center">
-          {sessionId && (
-            <AiHintPanel sessionId={sessionId} myChildId={myChildId} />
-          )}
+          {sessionId && <AiHintPanel />}
         </div>
         {/* 中央：映像 */}
         <div className="flex-1 flex flex-col gap-3 justify-center items-center w-full">
