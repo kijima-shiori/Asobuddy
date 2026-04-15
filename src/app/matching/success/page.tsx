@@ -2,11 +2,12 @@
 
 import { getSupabase } from '@/lib/supabase'
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { PartnerProfile } from '@/types'
 import { ChildCategoryResponse } from '@/types/supabase'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { Sirivennela } from 'next/font/google'
 
 // 生年月日から年齢を算出---------------------------
 const calculateAge = (birthday: string) => {
@@ -147,100 +148,113 @@ export default function MatchingSuccessPage() {
         }
       `}</style>
 
-      {loading ? (
-        // loadingがtrueの時、待機画面を出す
-        <div className="flex items-center justify-center h-screen">
-          <p className="text-[#376171] font-bold">Loading...</p>
-        </div>
-      ) : (
-        // loadingがfalseの時、マッチング相手を表示
-        <div className="p-20 flex flex-col items-center justify-center h-full relative z-10 w-full">
-          {/* イラスト */}
-          <div className="absolute top-[0%] right-[5%] h-[120px] animate-float z-20 pointer-events-none">
-            <Image
-              src="/rocket.png"
-              alt="Space Ship"
-              width={120}
-              height={120}
-              className="w-full h-full object-contain"
-            />
+      {/* URLの中身（SearchParams）を使うページは、『読み込み中（Suspense）』というバリアで囲まないといけない */}
+      {/* fallblack:何もない時に表示するもの。今回はloadingの時と同じにする */}
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center bg-[#E2F5F5]">
+            <p className="text-[#376171] font-bold">Loading...</p>
           </div>
-
-          {/* カード部分 */}
-          <div className="bg-white rounded-[15px] w-full max-w-[800px] pt-16 pb-8 px-12 shadow-[2px_4px_4px_0_#B0CBCC] relative mt-16">
-            {/* アイコン */}
-            <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full border-8 border-white bg-[#FFEFBA] shadow-md overflow-hidden flex items-center justify-center">
-              {partner?.icon_url ? (
-                <Image
-                  src={partner.icon_url || ''}
-                  alt="icon"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-5xl">👧</span>
-              )}
+        }
+      >
+        {loading ? (
+          // loadingがtrueの時、待機画面を出す
+          <div className="flex items-center justify-center h-screen">
+            <p className="text-[#376171] font-bold">Loading...</p>
+          </div>
+        ) : (
+          // loadingがfalseの時、マッチング相手を表示
+          <div className="p-20 flex flex-col items-center justify-center h-full relative z-10 w-full">
+            {/* イラスト */}
+            <div className="absolute top-[0%] right-[5%] h-[120px] animate-float z-20 pointer-events-none">
+              <Image
+                src="/rocket.png"
+                alt="Space Ship"
+                width={120}
+                height={120}
+                className="w-full h-full object-contain"
+              />
             </div>
 
-            {/* 名前 */}
-            <h1 className="text-[#2D6F7F] text-5xl font-black text-center mb-8">
-              {partner?.name}
-            </h1>
-
-            {/* 項目 */}
-            <div className="space-y-4 text-[#27214D] font-bold text-lg">
-              <div className="w-fit mx-auto space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-[#4A7A8C] shrink-0" />
-                  <p>
-                    {partner?.age}才の{partner?.gender}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-[#4A7A8C] shrink-0" />
-                  <p>母国語は{partner?.native_language}</p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-[#4A7A8C] shrink-0" />
-                  <p>好きなこと</p>
-                </div>
-              </div>
-
-              {/* 趣味タグの表示 */}
-              <div className="grid grid-cols-2 gap-2 pt-2 text-center text-base">
-                {partner?.hobbies && partner.hobbies.length > 0 ? (
-                  partner?.hobbies.map((hobby) => (
-                    <div key={hobby.id} className="bg-gray-50 py-1 rounded-lg">
-                      {hobby.name}
-                    </div>
-                  ))
+            {/* カード部分 */}
+            <div className="bg-white rounded-[15px] w-full max-w-[800px] pt-16 pb-8 px-12 shadow-[2px_4px_4px_0_#B0CBCC] relative mt-16">
+              {/* アイコン */}
+              <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full border-8 border-white bg-[#FFEFBA] shadow-md overflow-hidden flex items-center justify-center">
+                {partner?.icon_url ? (
+                  <Image
+                    src={partner.icon_url || ''}
+                    alt="icon"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
-                  <div className="bg-[#F8FBFC] py-1 rounded-lg col-span-2">
-                    なし
-                  </div>
+                  <span className="text-5xl">👧</span>
                 )}
               </div>
+
+              {/* 名前 */}
+              <h1 className="text-[#2D6F7F] text-5xl font-black text-center mb-8">
+                {partner?.name}
+              </h1>
+
+              {/* 項目 */}
+              <div className="space-y-4 text-[#27214D] font-bold text-lg">
+                <div className="w-fit mx-auto space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-[#4A7A8C] shrink-0" />
+                    <p>
+                      {partner?.age}才の{partner?.gender}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-[#4A7A8C] shrink-0" />
+                    <p>母国語は{partner?.native_language}</p>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-[#4A7A8C] shrink-0" />
+                    <p>好きなこと</p>
+                  </div>
+                </div>
+
+                {/* 趣味タグの表示 */}
+                <div className="grid grid-cols-2 gap-2 pt-2 text-center text-base">
+                  {partner?.hobbies && partner.hobbies.length > 0 ? (
+                    partner?.hobbies.map((hobby) => (
+                      <div
+                        key={hobby.id}
+                        className="bg-gray-50 py-1 rounded-lg"
+                      >
+                        {hobby.name}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="bg-[#F8FBFC] py-1 rounded-lg col-span-2">
+                      なし
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* ボタン */}
+            <div className="w-full max-w-[320px] mt-10 space-y-4 flex flex-col items-center">
+              <button
+                onClick={handleStartCall}
+                className="bg-[#FFA451] hover:bg-[#FFC897] text-white rounded-xl py-4 w-full text-xl shadow-[2px_2px_4px_0_#B0CBCC] transition-colors font-bold"
+              >
+                友達と会話をはじめる
+              </button>
+              <button
+                onClick={handleCancel}
+                className="bg-white w-[50%] text-[#FFA451] hover:bg-[#FFF5EB] border-1 border-[#FFA451] rounded-xl text-lgx shadow-[2px_2px_4px_0_#B0CBCC] font-bold py-4"
+              >
+                Cancel
+              </button>
             </div>
           </div>
-
-          {/* ボタン */}
-          <div className="w-full max-w-[320px] mt-10 space-y-4 flex flex-col items-center">
-            <button
-              onClick={handleStartCall}
-              className="bg-[#FFA451] hover:bg-[#FFC897] text-white rounded-xl py-4 w-full text-xl shadow-[2px_2px_4px_0_#B0CBCC] transition-colors font-bold"
-            >
-              友達と会話をはじめる
-            </button>
-            <button
-              onClick={handleCancel}
-              className="bg-white w-[50%] text-[#FFA451] hover:bg-[#FFF5EB] border-1 border-[#FFA451] rounded-xl text-lgx shadow-[2px_2px_4px_0_#B0CBCC] font-bold py-4"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
+        )}
+      </Suspense>
     </div>
   )
 }
