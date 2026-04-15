@@ -2,55 +2,82 @@
 
 import {
   useJoin,
-  useLocalMicrophoneTrack, //マイクの音声を準備する
-  useLocalCameraTrack, //カメラの映像を準備する
-  usePublish, // 準備した映像・音声を相手に送る
-  useRemoteUsers, // 相手の一覧を取得する
+  useLocalMicrophoneTrack,
+  useLocalCameraTrack,
+  usePublish,
+  useRemoteUsers,
 } from 'agora-rtc-react'
 import { useState, useEffect } from 'react'
 
-export function useAgoraCall(channelName: string) {
-  // 状態管理
+export function useAgoraCall(
+  channelName: string,
+  sessionId: string,
+  myChildId: string,
+) {
   const [token, setToken] = useState('')
   const [ready, setReady] = useState(false)
   const [micOn, setMicOn] = useState(true)
   const [cameraOn, setCameraOn] = useState(true)
-  //TODO ★Supabase認証実装後、string|nullに変更する★
-  const [uid, setUid] = useState<number>(() =>
-    Math.floor(Math.random() * 10000),
-  )
+  const [uid, setUid] = useState<number | null>(null)
+  const [childUuid, setChildUuid] = useState<string | null>(null)
+
+  // myChildIdから数値UIDを生成（Agora用）＋UUIDも保持（DB用）
+  useEffect(() => {
+    if (!myChildId) return
+    const numericUid = parseInt(myChildId.replace(/-/g, '').slice(0, 8), 16)
+    setUid(numericUid)
+    setChildUuid(myChildId)
+  }, [myChildId])
 
   // デバッグ用
   useEffect(() => {
     console.log('token:', token)
     console.log('ready:', ready)
-  }, [token, ready])
+    console.log('uid:', uid)
+    console.log('childUuid:', childUuid)
+  }, [token, ready, uid, childUuid])
 
-  // トークン取得（ページが開いた時に実行）
-  // TODO ★token取得時のエラーハンドリング追加★
+  // トークン取得（uidが取得できてから実行）
   useEffect(() => {
+    if (uid === null) return
+
     const fetchToken = async () => {
-      const response = await fetch('/api/calls/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channelName: channelName, uid: uid }),
-      })
-      const { token } = await response.json()
-      setToken(token)
-      setReady(true)
+      try {
+        const response = await fetch('/api/calls/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channelName: channelName, uid: uid }),
+        })
+        if (!response.ok) throw new Error('Token API failed')
+        const data = await response.json()
+        setToken(data.token)
+        setReady(true)
+      } catch (e) {
+        console.error('Failed to fetch token:', e)
+        alert(
+          '通話に必要なトークンの取得に失敗しました。再読み込みしてください。',
+        )
+      }
     }
     fetchToken()
-  }, [channelName])
+  }, [channelName, uid])
 
-  // カメラ・マイクを管理
+  // 通話開始APIを呼び出す
+  useEffect(() => {
+    if (!ready || !sessionId) return
+    fetch('/api/calls/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, childUuid }),
+    })
+  }, [ready, sessionId])
+
   const { localMicrophoneTrack } = useLocalMicrophoneTrack(micOn)
   const { localCameraTrack } = useLocalCameraTrack(cameraOn)
   const remoteUsers = useRemoteUsers()
 
-  // 映像・音声を送る
   usePublish([localMicrophoneTrack, localCameraTrack].filter(Boolean))
 
-  // チャンネルに入室
   const shouldJoin = ready && !!token && !!uid
 
   useJoin(
