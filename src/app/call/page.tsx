@@ -82,7 +82,7 @@ function CallPageInner() {
         {/* 下部：操作ボタン */}
         <div className="h-[15%] flex items-end justify-center pb-4">
           <CallTimer />
-          <CallControls />
+          <CallControls sessionId={sessionId} />
         </div>
         {callEnded && <CallEndScreen />}
       </div>
