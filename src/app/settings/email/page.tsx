@@ -10,16 +10,15 @@ export default function EmailSettingsPage() {
   const [receiveEmail, setReceiveEmail] = useState(true)
   const [loading, setLoading] = useState(false) // ←①ここ！
 
-  // ② Supabaseはここで1回だけ作る
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
-
   // ③ handleSaveはここで1回だけ
   const handleSave = async () => {
     if (loading) return
     setLoading(true)
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    )
 
     const {
       data: { user },
