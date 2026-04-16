@@ -11,6 +11,9 @@
     "test": "echo \"No tests yet\""
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^6.1.0",
+    "@stripe/stripe-js": "^9.1.0",
+    "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.100.1",
     "agora-rtc-react": "^2.5.1",
     "agora-token": "^2.0.5",
@@ -18,7 +21,8 @@
     "next": "16.2.1",
     "openai": "^6.33.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "stripe": "^22.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
