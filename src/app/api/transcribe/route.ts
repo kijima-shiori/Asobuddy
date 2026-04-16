@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
     const fileName = `${crypto.randomUUID()}.${ext}`
     const arrayBuffer = await file.arrayBuffer()
 
+    // Storageアップロード
     const { error: uploadError } = await supabase.storage
       .from('transcripts')
       .upload(fileName, arrayBuffer, {
@@ -37,14 +38,16 @@ export async function POST(req: NextRequest) {
       throw new Error('Storage upload failed')
     }
 
+    // 公開URL
     const { data: publicUrlData } = supabase.storage
       .from('transcripts')
       .getPublicUrl(fileName)
 
     const transcriptUrl = publicUrlData.publicUrl
 
+    // 👇ここ修正ポイント
     const transcription = await openai.audio.transcriptions.create({
-      file,
+      file: new File([arrayBuffer], file.name, { type: file.type }),
       model: 'whisper-1',
     })
 
