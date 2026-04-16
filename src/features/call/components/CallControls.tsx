@@ -35,7 +35,7 @@ export default function CallControls({ sessionId }: Props) {
     <div className="flex items-center justify-center w-full">
       <button
         onClick={handleEndCall}
-        className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-10 rounded-full shadow-lg text-lg transition-all active:scale-95"
+        className="w-full py-4 bg-orange-400 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
       >
         通話をおわる
       </button>
