@@ -77,11 +77,12 @@ export async function POST(req: NextRequest) {
 ・必ず3～4文にする
 ・ひらがな多め
 ・名前やチーム名はカタカナ
+・名前を間違えない
 ・やさしい言葉で書く
+・難しい言葉は禁止
 ・意味を変えない
 ・推測禁止
 ・何について話したか事実のみを書く
-
 
 【保護者向け】
 ・事実のみを書く
@@ -89,12 +90,13 @@ export async function POST(req: NextRequest) {
 ・チーム名は省略しない
 
 【出力形式】
+必ず以下のJSON形式で出力してください。
+余計な文章は一切書かないこと。
 
-child:
-〇〇
-
-parent:
-〇〇
+{
+  "child": "〇〇",
+  "parent": "〇〇"
+}
 `,
         },
         {
@@ -106,10 +108,16 @@ parent:
 
     const summaryContent = summaryRes.choices[0].message.content ?? ''
 
-    const child =
-      summaryContent.match(/child:\n([\s\S]*?)\n\nparent:/)?.[1]?.trim() ?? ''
+    let child = ''
+    let parent = ''
 
-    const parent = summaryContent.match(/parent:\n([\s\S]*)/)?.[1]?.trim() ?? ''
+    try {
+      const summaryJson = JSON.parse(summaryContent)
+      child = summaryJson.child ?? ''
+      parent = summaryJson.parent ?? ''
+    } catch (e) {
+      console.error('JSON parse error (summary):', e)
+    }
 
     // 🔴 安全判定
     const safetyRes = await openai.chat.completions.create({
@@ -127,14 +135,36 @@ parent:
 ・抽象表現は禁止
 ・最も強い言葉を優先（例：死ね、消えろ）
 ・理由は日本語で書く
+・英語の発言の後に、日本語訳を（）で必ずつけること
+・可能であれば、だれが発言したかも含めて出力する事
+
+【重要】
+・英語の発言の直後に、日本語訳を（）で必ずつけること
+・翻訳を省略することは禁止
 
 【出力形式】
+必ず以下のJSON形式で出力してください。
+余計な文章は一切書かないこと。
 
-safety_flag:
-true or false
+{
+  "safety_flag": true,
+  "reason": "..."
+}
 
-reason:
-危険な言葉があったら使われた英語（日本語に翻訳したものをカッコ内にいれる）を全てそのまま抜き出す。なければ「特になし」
+【例】
+入力: "Just die"
+出力:
+{
+  "safety_flag": true,
+  "reason": "Leo: Just die（死ね）"
+}
+
+入力: "I hate you"
+出力:
+{
+  "safety_flag": true,
+  "reason": "Leo: I hate you（嫌い）"
+}
 `,
         },
         {
@@ -146,11 +176,16 @@ reason:
 
     const safetyContent = safetyRes.choices[0].message.content ?? ''
 
-    const safetyMatch = safetyContent.match(/safety_flag:\s*(true|false)/i)
-    const safety_flag = safetyMatch?.[1]?.toLowerCase() === 'true'
+    let safety_flag = false
+    let reason = ''
 
-    const reason =
-      safetyContent.match(/reason:\s*([\s\S]*)/i)?.[1]?.trim() ?? ''
+    try {
+      const safetyJson = JSON.parse(safetyContent)
+      safety_flag = safetyJson.safety_flag ?? false
+      reason = safetyJson.reason ?? ''
+    } catch (e) {
+      console.error('JSON parse error (safety):', e)
+    }
 
     // 💾 DB保存
     const { error } = await supabase.from('call_reports').insert({
