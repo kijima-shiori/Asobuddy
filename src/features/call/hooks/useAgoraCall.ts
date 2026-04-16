@@ -9,6 +9,7 @@ import {
 } from 'agora-rtc-react'
 import { useState, useEffect } from 'react'
 
+// myChildIdを引数で受け取りAgoraのuidに変換する
 export function useAgoraCall(
   channelName: string,
   sessionId: string,
@@ -19,14 +20,14 @@ export function useAgoraCall(
   const [micOn, setMicOn] = useState(true)
   const [cameraOn, setCameraOn] = useState(true)
   const [uid, setUid] = useState<number | null>(null)
-  const [childUuid, setChildUuid] = useState<string | null>(null)
+  const [childUuid, setChildUuid] = useState<string | null>(null) // DB保存用
 
-  // myChildIdから数値UIDを生成（Agora用）＋UUIDも保持（DB用）
+  // childIdから数値UIDを生成（Agora用）＋UUIDも保持（DB用）
   useEffect(() => {
     if (!myChildId) return
     const numericUid = parseInt(myChildId.replace(/-/g, '').slice(0, 8), 16)
-    setUid(numericUid)
-    setChildUuid(myChildId)
+    setUid(numericUid) // Agora用
+    setChildUuid(myChildId) // DB保存用
   }, [myChildId])
 
   // デバッグ用
@@ -40,6 +41,7 @@ export function useAgoraCall(
   // トークン取得（uidが取得できてから実行）
   useEffect(() => {
     if (uid === null) return
+    if (!channelName) return
 
     const fetchToken = async () => {
       try {
@@ -48,7 +50,9 @@ export function useAgoraCall(
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ channelName: channelName, uid: uid }),
         })
+
         if (!response.ok) throw new Error('Token API failed')
+
         const data = await response.json()
         setToken(data.token)
         setReady(true)
@@ -65,6 +69,7 @@ export function useAgoraCall(
   // 通話開始APIを呼び出す
   useEffect(() => {
     if (!ready || !sessionId) return
+
     fetch('/api/calls/start', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
