@@ -13,8 +13,9 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const sessionId = searchParams.get('sessionId')
 
-    if (!sessionId) {
-      return NextResponse.json({ error: 'sessionId required' }, { status: 400 })
+    if (!sessionId || sessionId.length < 10) {
+      // セッションIDの基本的なバリデーション（例: 10文字以上）
+      return NextResponse.json({ error: 'invalid sessionId' }, { status: 400 }) // セッションIDがない、または短すぎる場合は400エラーを返す
     }
 
     const { data, error } = await supabase
@@ -28,7 +29,7 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({
-      child: data.child_summary ?? '',
+      child: data.summary ?? '',
       parent: data.summary ?? '',
       safety_flag: data.safety_flag ?? false,
       reason: data.reason ?? '',
@@ -41,6 +42,7 @@ export async function GET(req: NextRequest) {
     )
   }
 }
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = createClient(
@@ -106,9 +108,10 @@ parent:
     const summaryContent = summaryRes.choices[0].message.content ?? ''
 
     const child =
-      summaryContent.match(/child:\n([\s\S]*?)\n\nparent:/)?.[1]?.trim() ?? ''
+      summaryContent.match(/child:\s*([\s\S]*?)\n*parent:/i)?.[1]?.trim() ?? ''
 
-    const parent = summaryContent.match(/parent:\n([\s\S]*)/)?.[1]?.trim() ?? ''
+    const parent =
+      summaryContent.match(/parent:\s*([\s\S]*)/i)?.[1]?.trim() ?? ''
 
     // 🔴 安全判定
     const safetyRes = await openai.chat.completions.create({
@@ -149,19 +152,22 @@ reason:
     const safety_flag = safetyMatch?.[1]?.toLowerCase() === 'true'
 
     const reason =
-      safetyContent.match(/reason:\s*([\s\S]*)/i)?.[1]?.trim() ?? ''
+      safetyContent.match(/reason:\s*([\s\S]*?)$/i)?.[1]?.trim() ?? ''
 
     // 💾 DB保存
-    const { error } = await supabase.from('call_reports').insert({
-      session_id: sessionId,
-      summary: parent,
-      transcript_url: null,
-      safety_flag,
-      reason,
-    })
+    const { error } = await supabase.from('call_reports').upsert(
+      {
+        session_id: sessionId,
+        summary: parent,
+        transcript_url: null,
+        safety_flag,
+        reason,
+      },
+      { onConflict: 'session_id' },
+    )
 
     if (error) {
-      console.error('Insert error:', error.message)
+      console.error('Upsert error:', error.message)
       return NextResponse.json({ error: 'DB insert failed' }, { status: 500 })
     }
 

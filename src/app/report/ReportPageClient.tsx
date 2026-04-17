@@ -126,7 +126,7 @@ export default function ReportPage() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                       transcript: text,
-                      sessionId: sessionId ?? undefined,
+                      sessionId: sessionId ?? crypto.randomUUID(), // セッションIDがない場合はランダム生成（ただし、実際の運用ではセッション管理をしっかり行うべき）
                     }),
                   })
 
@@ -173,7 +173,7 @@ export default function ReportPage() {
 
             <p
               className={`mt-2 text-xs font-semibold ${
-                data.safety_flag ? 'text-green-500' : 'text-red-500'
+                data.safety_flag ? 'text-red-500' : 'text-green-500'
               }`}
             >
               安全判定: {data.safety_flag ? '危険あり' : '問題なし'}（
