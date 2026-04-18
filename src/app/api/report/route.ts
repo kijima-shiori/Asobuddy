@@ -78,6 +78,9 @@ export async function POST(req: NextRequest) {
 ・必ず3～4文にする
 ・ひらがな多め
 ・名前やチーム名はカタカナ
+・名前（Lily, Hana）はそのまま使用すること
+・キャラクターの名前はそのまま使用すること
+・別の名前に変換しないこと
 ・やさしい言葉で書く
 ・意味を変えない
 ・推測禁止
@@ -106,12 +109,21 @@ parent:
     })
 
     const summaryContent = summaryRes.choices[0].message.content ?? ''
+    // 👇 ここ追加
+    console.log('=== summaryContent ===')
+    console.log(summaryContent)
 
     const child =
-      summaryContent.match(/child:\s*([\s\S]*?)\n*parent:/i)?.[1]?.trim() ?? ''
+      summaryContent
+        .match(/child\s*:\s*([\s\S]*?)\s*parent\s*:/i)?.[1]
+        ?.trim() ?? ''
 
     const parent =
-      summaryContent.match(/parent:\s*([\s\S]*)/i)?.[1]?.trim() ?? ''
+      summaryContent.match(/parent\s*:\s*([\s\S]*)/i)?.[1]?.trim() ?? ''
+
+    // 👇 ここ追加
+    console.log('=== child ===', child)
+    console.log('=== parent ===', parent)
 
     // 🔴 安全判定
     const safetyRes = await openai.chat.completions.create({
@@ -153,6 +165,9 @@ reason:
 
     const reason =
       safetyContent.match(/reason:\s*([\s\S]*?)$/i)?.[1]?.trim() ?? ''
+    // 👇 ここ追加
+    console.log('=== safetyContent ===')
+    console.log(safetyContent)
 
     // 💾 DB保存
     const { error } = await supabase.from('call_reports').upsert(
