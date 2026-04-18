@@ -24,17 +24,6 @@ export default function ProfilePage() {
     }
   }
 
-  const calcAge = (birthday: string) => {
-    const birth = new Date(birthday)
-    const today = new Date()
-    let age = today.getFullYear() - birth.getFullYear()
-    const m = today.getMonth() - birth.getMonth()
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-      age--
-    }
-    return age
-  }
-
   const handleSave = async () => {
     const supabase = createClient(url, key)
     const {
@@ -64,12 +53,9 @@ export default function ProfilePage() {
       icon_url = urlData.publicUrl
     }
 
-    const age = calcAge(birthday)
-
     const { error: upsertError } = await supabase.from('children').upsert({
       user_id: user.id,
       birthday,
-      age,
       gender,
       native_language: nativeLanguage,
       icon_url,
