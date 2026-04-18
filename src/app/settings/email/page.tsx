@@ -1,14 +1,41 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 
 export default function EmailSettingsPage() {
   const router = useRouter()
   const [receiveEmail, setReceiveEmail] = useState(true)
-  const [loading, setLoading] = useState(false) // ←①ここ！
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const load = async () => {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      )
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) return
+
+      const { data } = await supabase
+        .from('subscriptions')
+        .select('receive_email')
+        .eq('user_id', user.id)
+        .single()
+
+      if (data) {
+        setReceiveEmail(data.receive_email)
+      }
+    }
+
+    load()
+  }, [])
 
   // ③ handleSaveはここで1回だけ
   const handleSave = async () => {
@@ -30,10 +57,13 @@ export default function EmailSettingsPage() {
       return
     }
 
-    const { error } = await supabase.from('subscriptions').insert({
-      user_id: user.id,
-      receive_email: receiveEmail,
-    })
+    const { error } = await supabase.from('subscriptions').upsert(
+      {
+        user_id: user.id,
+        receive_email: receiveEmail,
+      },
+      { onConflict: 'user_id' },
+    )
 
     if (error) {
       console.error(error)
