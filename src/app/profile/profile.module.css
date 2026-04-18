@@ -25,6 +25,22 @@
   color: #2d6f7f;
 }
 
+.nicknameInput {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 2px solid #2d6f7f;
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 20px;
+  text-align: center;
+  color: #2d6f7f;
+  font-weight: bold;
+}
+
 .iconUpload {
   position: absolute;
   top: 110px;

@@ -10,6 +10,7 @@ export default function ProfilePage() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
 
+  const [nickname, setNickname] = useState('')
   const [birthday, setBirthday] = useState('')
   const [gender, setGender] = useState('')
   const [nativeLanguage, setNativeLanguage] = useState('')
@@ -68,6 +69,7 @@ export default function ProfilePage() {
 
     const { error: upsertError } = await supabase.from('children').upsert({
       user_id: user.id,
+      name: nickname, // ← ★ 追加
       birthday,
       age,
       gender,
@@ -94,7 +96,14 @@ export default function ProfilePage() {
           className={styles.bg}
         />
 
-        <p className={styles.nickname}>Nickname</p>
+        {/* ★ Nickname 入力欄 */}
+        <input
+          type="text"
+          placeholder="ニックネーム/Nickname"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+          className={styles.nicknameInput}
+        />
 
         <label className={styles.iconUpload}>
           {iconPreview ? (
@@ -116,35 +125,35 @@ export default function ProfilePage() {
       </div>
 
       <div className={styles.form}>
-        <label>生年月日</label>
+        <label>生年月日/Birthday</label>
         <input
           type="date"
           value={birthday}
           onChange={(e) => setBirthday(e.target.value)}
         />
 
-        <label>性別</label>
+        <label>性別/Gender</label>
         <select value={gender} onChange={(e) => setGender(e.target.value)}>
-          <option value="">選択してください</option>
-          <option value="male">男の子</option>
-          <option value="female">女の子</option>
+          <option value="">選択してください/Select</option>
+          <option value="male">男の子/Boy</option>
+          <option value="female">女の子/Girl</option>
         </select>
 
-        <label>母国語</label>
+        <label>母国語/Native Language</label>
         <select
           value={nativeLanguage}
           onChange={(e) => setNativeLanguage(e.target.value)}
         >
-          <option value="">選択してください</option>
-          <option value="japanese">日本語</option>
-          <option value="english">英語</option>
+          <option value="">選択してください/Select</option>
+          <option value="japanese">日本語/Japanese</option>
+          <option value="english">英語/English</option>
         </select>
 
         <button className={styles.okButton} onClick={handleSave}>
           OK
         </button>
 
-        <button className={styles.cancelButton}>キャンセル</button>
+        <button className={styles.cancelButton}>キャンセル/Cancel</button>
       </div>
     </div>
   )
