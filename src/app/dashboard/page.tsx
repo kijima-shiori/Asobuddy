@@ -24,7 +24,7 @@ export default function DashboardPage() {
     checkSession()
   }, [router])
 
-  const userId = '99999999-4656-4939-9ee4-cd2b9e7a5884'
+  const userId = '17b0a1d9-4656-4939-9ee4-cd2b9e7a5884'
 
   const handleFindFriend = () => {
     router.push('/matching')
@@ -36,7 +36,7 @@ export default function DashboardPage() {
     <main className="p-4">
       <button
         onClick={handleFindFriend}
-        className="w-full py-4 bg-orange-400 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
+        className="w-full py-4 bg-[#FFA451] text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
       >
         友達を見つける
       </button>
