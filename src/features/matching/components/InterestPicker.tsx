@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { getSupabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 
 const HOBBIES = [
   { id: '1b3d6e76-449f-46e5-99b6-489b1d4d36d9', label: 'アニメ' },
@@ -16,11 +17,39 @@ const HOBBIES = [
   { id: 'b6403dd0-139e-44a0-8324-317c0748c49c', label: 'うちゅう' },
 ]
 
-export default function InterestPicker() {
-  const [selectedIds, setSelectedIds] = useState<string[]>([])
+// 窓口を作る何を受け取るか定義
+interface InterestPickerProps {
+  userId: string
+}
 
-  // 仮のID（自分のSupabaseからコピーしたUUID）
-  const userId = '17b0a1d9-4656-4939-9ee4-cd2b9e7a5884'
+// 窓口を開く
+export default function InterestPicker({ userId }: InterestPickerProps) {
+  const router = useRouter()
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [showSuccess, setShowSuccess] = useState(false)
+
+  // ページが開いたときに保存済みの趣味を撮ってきて表示
+  useEffect(() => {
+    const fetchSavedHobbies = async () => {
+      if (!userId) return
+
+      const supabase = getSupabase()
+      const { data, error } = await supabase
+        .from('child_categories')
+        .select('category_id')
+        .eq('child_id', userId)
+
+      if (error) {
+        console.error('趣味の読み込みに失敗：', error.message)
+        return
+      }
+
+      const savedIds = data.map((item) => item.category_id)
+      setSelectedIds(savedIds)
+    }
+    fetchSavedHobbies()
+  }, [userId])
 
   //---------------  趣味保存ボタンを押したときに実行される内容
   const handleSave = async () => {
@@ -31,6 +60,8 @@ export default function InterestPicker() {
       category_id: catId,
     }))
 
+    await supabase.from('child_categories').delete().eq('child_id', userId)
+
     const { error } = await supabase
       .from('child_categories')
       .upsert(insertData, { onConflict: 'child_id,category_id' })
@@ -38,7 +69,10 @@ export default function InterestPicker() {
     if (error) {
       alert('保存に失敗しました:' + error.message)
     } else {
-      alert('カテゴリの登録が完了しました。')
+      setShowSuccess(true)
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 2000)
     }
   }
 
@@ -50,6 +84,16 @@ export default function InterestPicker() {
     } else {
       setSelectedIds([...selectedIds, id])
     }
+  }
+
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen bg-white/50 flex flex-col items-center justify-center p-8">
+        <h2 className="text-2xl text-[#1F2937] mb-2 font-bold text-center">
+          冒険の準備ができたよ！
+        </h2>
+      </div>
+    )
   }
 
   return (

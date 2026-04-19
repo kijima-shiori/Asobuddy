@@ -9,8 +9,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [childId, setChildId] = useState<string | null>(null)
 
-  // ログインチェック
-  // TODO: データベースからChild IDを反映する。（仮でIDをベタ打ちしています）
+  // ログインチェック------------------------------------
   useEffect(() => {
     async function checkSession() {
       const supabase = getSupabase()
@@ -38,6 +37,7 @@ export default function DashboardPage() {
     checkSession()
   }, [router])
 
+  // マッチング開始ボタン---------------------------
   const handleFindFriend = () => {
     if (childId) {
       router.push(`/matching?childId=${childId}`)
@@ -48,6 +48,15 @@ export default function DashboardPage() {
 
   if (loading) return <div>読み込み中...</div>
 
+  // 趣味タグ登録ボタン----------------------------
+  const handleHobby = () => {
+    if (childId) {
+      router.push(`/settings?childId=${childId}`)
+    } else {
+      alert('エラーです。')
+    }
+  }
+
   return (
     <main className="p-4">
       <button
@@ -55,6 +64,13 @@ export default function DashboardPage() {
         className="w-full py-4 bg-[#FFA451] text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
       >
         友達を見つける
+      </button>
+
+      <button
+        onClick={handleHobby}
+        className="w-full py-4 bg-[#FFA451] text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
+      >
+        好きなこと
       </button>
     </main>
   )
