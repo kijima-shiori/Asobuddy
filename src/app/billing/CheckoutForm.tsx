@@ -16,7 +16,8 @@ export default function CheckoutForm() {
     })
 
     const data = await res.json()
-    setLoading(false)
+
+    console.log('Checkout API response:', data)
 
     // Stripe Checkout にリダイレクト
     window.location.href = data.url
