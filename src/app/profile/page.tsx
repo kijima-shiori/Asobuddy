@@ -25,17 +25,6 @@ export default function ProfilePage() {
     }
   }
 
-  const calcAge = (birthday: string) => {
-    const birth = new Date(birthday)
-    const today = new Date()
-    let age = today.getFullYear() - birth.getFullYear()
-    const m = today.getMonth() - birth.getMonth()
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-      age--
-    }
-    return age
-  }
-
   const handleSave = async () => {
     const supabase = createClient(url, key)
     const {
@@ -73,21 +62,20 @@ export default function ProfilePage() {
       icon_url = urlData.publicUrl
     }
 
-    const age = calcAge(birthday)
-
-    // ★ onConflict を追加（user_id が同じなら UPDATE）
+    // ★ age を削除した upsert
     const { error: upsertError } = await supabase.from('children').upsert(
       {
         user_id: user.id,
         name: nickname,
         birthday,
-        age,
         gender,
         native_language: nativeLanguage,
         icon_url,
       },
-      { onConflict: 'user_id' }
+      { onConflict: 'user_id' },
     )
+
+    console.error('UPSERT ERROR:', upsertError)
 
     if (upsertError) {
       console.error(upsertError)
