@@ -91,6 +91,7 @@ export async function POST(req: NextRequest) {
 ・事実のみを書く
 ・推測禁止
 ・チーム名は省略しない
+・必ず日本語で書く
 
 【出力形式】
 
