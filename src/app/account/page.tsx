@@ -11,7 +11,7 @@ export default function AccountPage() {
 
       {/* 👇メールアドレス受信設定のための実装 */}
       <button
-        //onClick={() => router.push('/settings/email')}
+        onClick={() => router.push('/settings/email')}
         className="bg-orange-400 text-white px-6 py-3 rounded-xl"
       >
         メール受信設定
