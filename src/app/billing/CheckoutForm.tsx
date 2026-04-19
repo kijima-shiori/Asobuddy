@@ -10,7 +10,7 @@ export default function CheckoutForm() {
     e.preventDefault()
     setLoading(true)
 
-    const res = await fetch('/api/billing/checkout', { 
+    const res = await fetch('/api/billing/checkout', {
       method: 'POST',
       credentials: 'include',
     })

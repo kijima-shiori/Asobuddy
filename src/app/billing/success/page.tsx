@@ -33,8 +33,12 @@ export default function BillingSuccessPage() {
         .single()
 
       if (data) {
-        setPeriodStart(new Date(data.current_period_start))
-        setPeriodEnd(new Date(data.current_period_end))
+        const start = new Date()
+        const end = new Date()
+        end.setDate(start.getDate() + 30)
+
+        setPeriodStart(start)
+        setPeriodEnd(end)
       }
     }
 
