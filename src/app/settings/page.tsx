@@ -2,8 +2,9 @@
 
 import InterestPicker from '@/features/matching/components/InterestPicker'
 import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 
-export default function SettingsPage() {
+function SettingsInner() {
   const searchParams = useSearchParams()
   const userId = searchParams.get('childId')
 
@@ -19,5 +20,13 @@ export default function SettingsPage() {
     <main>
       <InterestPicker userId={userId} />
     </main>
+  )
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SettingsInner />
+    </Suspense>
   )
 }
