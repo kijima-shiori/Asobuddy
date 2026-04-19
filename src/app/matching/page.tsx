@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, Suspense } from 'react'
 import {
   cancelSession,
   createSession,
@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation'
 import { Session } from '@/types'
 import { useSearchParams } from 'next/navigation'
 
-export default function MatchingPage() {
+function MatchingInner() {
   const searchParams = useSearchParams()
   const userId = searchParams.get('childId')
   const isStarted = useRef(false)
@@ -108,30 +108,19 @@ export default function MatchingPage() {
           <div className="w-24 h-24 bg-orange-400 rounded-full shadow-lg shadow-orange-200"></div>
         </div>
 
-        {/* ステータスの文字（今は仮で） */}
+        {/* ステータスの文字 */}
         <p className="mt-8 text-gray-400 font-bold tracking-widest animate-pulse">
           MATCHING...
         </p>
       </div>
-
-      {/* プロフィール登録してなかった時のモーダル表示 */}
-      {/* {showErrorModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50">
-          <div className="bg-white rounded-2xl p-8 w-full max-w-sm text-center shadow-2xl">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">おっと！</h2>
-            <p className="text-gray-600 mb-8">
-              プロフィールがまだできてないみたい。
-              <br /> ホームにもどって登録してね。
-            </p>
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="w-full py-4 bg-orange-400 text-white font-bold rounded-2xl"
-            >
-              Homeへもどる
-            </button>
-          </div>
-        </div>
-      )} */}
     </main>
+  )
+}
+
+export default function MatchingPage() {
+  return (
+    <Suspense fallback={<div className="p-10 text-center">Loading...</div>}>
+      <MatchingInner />
+    </Suspense>
   )
 }
