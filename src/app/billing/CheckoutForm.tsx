@@ -11,8 +11,13 @@ export default function CheckoutForm() {
     e.preventDefault()
     setLoading(true)
 
-    const res = await fetch('/api/billing/checkout', { method: 'POST' })
+    const res = await fetch('/api/billing/checkout', {
+      method: 'POST',
+      credentials: 'include',
+    })
     const data = await res.json()
+
+    console.log('Checkout API response:', data)
 
     setLoading(false)
 
