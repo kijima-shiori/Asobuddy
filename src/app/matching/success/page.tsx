@@ -28,6 +28,7 @@ function SuccessContent() {
   const router = useRouter()
 
   const sessionId = searchParams.get('session_id')
+  const userId = searchParams.get('userId')
 
   const [partner, setPartner] = useState<PartnerProfile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -36,20 +37,6 @@ function SuccessContent() {
     const supabase = getSupabase()
 
     const fetchSessionData = async () => {
-      // authからログインしているユーザー情報をとってくる----------------
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser()
-
-      if (authError || !user) {
-        console.error('ログインエラーが発生しました')
-        return
-      }
-
-      const userId = user.id
-      // --------------------------------
-
       // sessionsテーブルからマッチングした子のidを持ってくる--------------
       const { data, error } = await supabase
         .from('sessions')
@@ -120,7 +107,7 @@ function SuccessContent() {
       }
     }
     fetchSessionData()
-  }, [sessionId])
+  }, [sessionId, userId])
 
   // ボタンの宣言--------------------------
   const handleStartCall = () => {

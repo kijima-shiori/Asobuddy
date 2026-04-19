@@ -64,6 +64,7 @@ export const createSession = async (userId: string) => {
     .select('id, child_a_id')
     .eq('status', 'waiting')
     .neq('child_a_id', userId)
+    .gt('updated_at', fifteenSecondAgo)
     .order('created_at', { ascending: true })
 
   // waitingリストを一つずつ順番に見る-----------------------------
@@ -114,4 +115,25 @@ export const createSession = async (userId: string) => {
 
   if (error) throw error
   return data
+}
+// ----------------------------------
+
+/**
+ * セッションをキャンセル（中断）する
+ * @param sessionId 対象のセッションID
+ */
+export const cancelSession = (sessionId: string) => {
+  const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/sessions?id=eq.${sessionId}`
+
+  // fetchに「keepalive: true」をつけると、タブを閉じても通信を最後まで完遂してくれる
+  fetch(url, {
+    method: 'PATCH',
+    headers: {
+      apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ status: 'cancelled' }),
+    keepalive: true,
+  })
 }

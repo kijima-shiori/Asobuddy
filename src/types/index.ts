@@ -1,4 +1,9 @@
-export type sessionStatus = 'waiting' | 'matched' | 'active' | 'completed'
+export type sessionStatus =
+  | 'waiting'
+  | 'matched'
+  | 'active'
+  | 'completed'
+  | 'cancelled'
 
 export interface Session {
   id: string
