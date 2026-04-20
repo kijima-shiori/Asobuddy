@@ -1,15 +1,20 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useState, useRef } from 'react'
-import { createSession } from '@/features/matching/services/matchService'
+import { useEffect, useState, useRef, Suspense } from 'react'
+import {
+  cancelSession,
+  createSession,
+} from '@/features/matching/services/matchService'
 import { useHeartbeat } from '@/features/matching/hooks/useHeartbeat'
 import { useMatchRealtime } from '@/features/matching/hooks/useMatchRealtime'
 import { useRouter } from 'next/navigation'
 import { Session } from '@/types'
+import { useSearchParams } from 'next/navigation'
 
-export default function MatchingPage() {
-  const userId = '17b0a1d9-4656-4939-9ee4-cd2b9e7a5884'
+function MatchingInner() {
+  const searchParams = useSearchParams()
+  const userId = searchParams.get('childId')
   const isStarted = useRef(false)
   const router = useRouter()
 
@@ -17,9 +22,12 @@ export default function MatchingPage() {
   const [matchResult, setMatchResult] = useState<Session | null>(null)
 
   useHeartbeat(matchResult?.id)
-  useMatchRealtime(matchResult?.id)
+  useMatchRealtime(matchResult?.id, userId)
 
   useEffect(() => {
+    // 子供のidが取得できなかったら何もしないで終わる
+    if (!userId) return
+
     // 2重実行禁止-----------------
     if (isStarted.current) return
     isStarted.current = true
@@ -28,12 +36,15 @@ export default function MatchingPage() {
     const startMatching = async () => {
       try {
         const session = await createSession(userId)
+        console.log('作成されたセッションID:', session.id)
 
         // setMatchResultで結果を書き込む前にマッチングしたら追い出す
         // 書き込みを先にすると、matchedしてもwaiting状態で残ってしまう
         if (session.status === 'matched') {
           console.log('マッチングしたよ！お友達を紹介します')
-          router.push(`/matching/success?session_id=${session.id}`)
+          router.push(
+            `/matching/success?session_id=${session.id}&userId=${userId}`,
+          )
           return
         }
 
@@ -47,6 +58,26 @@ export default function MatchingPage() {
     }
     startMatching()
   }, [userId])
+
+  // タブを閉じた子をキャンセルに変更する処理--------------------
+  useEffect(() => {
+    const handleTabClose = () => {
+      if (matchResult?.id && matchResult.status === 'waiting') {
+        cancelSession(matchResult.id)
+      }
+    }
+    // ここにタブを閉じた時の条件が入ってる。
+    // beforeunload: ブラウザの特別なイベント名「タブを閉じようとした瞬間」 または 「別のページに移動しようとした瞬間」
+    window.addEventListener('beforeunload', handleTabClose)
+    return () => {
+      window.removeEventListener('beforeunload', handleTabClose)
+    }
+  }, [matchResult])
+
+  if (!userId)
+    return (
+      <div className="p-10 text-center">Loading...またはIDが見つかりません</div>
+    )
 
   //   ------------画面表示------------
   return (
@@ -77,11 +108,19 @@ export default function MatchingPage() {
           <div className="w-24 h-24 bg-orange-400 rounded-full shadow-lg shadow-orange-200"></div>
         </div>
 
-        {/* ステータスの文字（今は仮で） */}
+        {/* ステータスの文字 */}
         <p className="mt-8 text-gray-400 font-bold tracking-widest animate-pulse">
           MATCHING...
         </p>
       </div>
     </main>
+  )
+}
+
+export default function MatchingPage() {
+  return (
+    <Suspense fallback={<div className="p-10 text-center">Loading...</div>}>
+      <MatchingInner />
+    </Suspense>
   )
 }

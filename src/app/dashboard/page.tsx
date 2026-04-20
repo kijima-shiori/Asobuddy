@@ -7,9 +7,9 @@ import { getSupabase } from '@/lib/supabase'
 export default function DashboardPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
+  const [childId, setChildId] = useState<string | null>(null)
 
-  // ログインチェック
-  // TODO: データベースからChild IDを反映する。（仮でIDをベタ打ちしています）
+  // ログインチェック------------------------------------
   useEffect(() => {
     async function checkSession() {
       const supabase = getSupabase()
@@ -17,20 +17,45 @@ export default function DashboardPage() {
 
       if (!data.session) {
         router.push('/signin')
-      } else {
-        setLoading(false)
+        return
       }
+
+      const { data: childData, error } = await supabase
+        .from('children')
+        .select('id')
+        .eq('user_id', data.session.user.id)
+        .single()
+
+      if (childData) {
+        console.log('子供のid:', childData.id)
+        setChildId(childData.id)
+      }
+
+      setLoading(false)
     }
+
     checkSession()
   }, [router])
 
-  const userId = '17b0a1d9-4656-4939-9ee4-cd2b9e7a5884'
-
+  // マッチング開始ボタン---------------------------
   const handleFindFriend = () => {
-    router.push('/matching')
+    if (childId) {
+      router.push(`/matching?childId=${childId}`)
+    } else {
+      alert('あなたのお名前が見つけられなったよ。')
+    }
   }
 
   if (loading) return <div>読み込み中...</div>
+
+  // 趣味タグ登録ボタン----------------------------
+  const handleHobby = () => {
+    if (childId) {
+      router.push(`/settings?childId=${childId}`)
+    } else {
+      alert('エラーです。')
+    }
+  }
 
   return (
     <main className="p-4">
@@ -39,6 +64,13 @@ export default function DashboardPage() {
         className="w-full py-4 bg-[#FFA451] text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
       >
         友達を見つける
+      </button>
+
+      <button
+        onClick={handleHobby}
+        className="w-full py-4 bg-[#FFA451] text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
+      >
+        好きなこと
       </button>
     </main>
   )
