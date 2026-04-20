@@ -21,36 +21,43 @@ function CallPageInner() {
 
   useEffect(() => {
     const fetchSessionAndChild = async () => {
+      console.log('start fetch')
+
       const supabase = getSupabase()
 
-      // ① Supabase AuthからユーザーIDを取得
       const {
         data: { user },
       } = await supabase.auth.getUser()
+
+      console.log('user:', user)
       if (!user) return
 
-      // ② childrenテーブルからchildIdを取得
       const { data: child } = await supabase
         .from('children')
         .select('id')
         .eq('user_id', user.id)
         .single()
 
+      console.log('child:', child)
       if (!child) return
-      setMyChildId(child.id)
 
-      // ③ sessionsテーブルからsessionIdを取得
-      const { data: session } = await supabase
+      const { data: sessions } = await supabase
         .from('sessions')
         .select('id')
         .or(`child_a_id.eq.${child.id},child_b_id.eq.${child.id}`)
-        .eq('status', 'matched')
-        .single()
+        .limit(1)
 
+      console.log('sessions:', sessions)
+
+      const session = sessions?.[0]
+
+      console.log('session:', session)
       if (!session) return
+
       setSessionId(session.id)
     }
 
+    // 👇ここで呼ぶ！！
     fetchSessionAndChild()
   }, [])
 
