@@ -3,13 +3,12 @@
 import { useState, useEffect, useRef } from "react";
 import { getSupabase } from "@/lib/supabase";
 
-const SILENCE_THRESHOLD_SECONDS = 5
+const SILENCE_THRESHOLD_SECONDS = 10
 
 export function useAiHint(sessionId: string, myChildId: string) {
   const [hint, setHint] = useState<string>("会話がとぎれたらヒントが出るよ！")
   const [loading, setLoading] = useState(false)
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null)
-  // カテゴリをキャッシュして毎回DBを叩かないようにする
   const categoriesRef = useRef<{ my: string[], opponent: string[] } | null>(null)
 
   // Supabaseから両者の趣味タグを取得（初回のみ）
@@ -19,7 +18,6 @@ export function useAiHint(sessionId: string, myChildId: string) {
     const supabase = getSupabase()
 
     try {
-      // sessionsテーブルからchild_a_id, child_b_idを取得
       const { data: session, error: sessionError } = await supabase
         .from("sessions")
         .select("child_a_id, child_b_id")
@@ -31,14 +29,11 @@ export function useAiHint(sessionId: string, myChildId: string) {
         return { my: [], opponent: [] }
       }
 
-      // 相手のchildIdを特定
       const opponentChildId = session.child_a_id === myChildId
         ? session.child_b_id
         : session.child_a_id
 
-      // 自分と相手のカテゴリを別々に取得する関数
       const fetchChildCategories = async (childId: string): Promise<string[]> => {
-        // JOINを使ってcategoriesテーブルのnameを一緒に取得する
         const { data, error } = await supabase
           .from("child_categories")
           .select(`
@@ -53,11 +48,9 @@ export function useAiHint(sessionId: string, myChildId: string) {
           return [];
         }
 
-        // dataは [{ categories: { name: "ポケモン" } }, ...] という形なので、nameだけの配列に変換する
         return data.map((item: any) => item.categories?.name).filter(Boolean);
       }
 
-      // 自分の趣味と相手の趣味を並列で取得
       const [myCategories, opponentCategories] = await Promise.all([
         fetchChildCategories(myChildId),
         fetchChildCategories(opponentChildId)
@@ -73,12 +66,9 @@ export function useAiHint(sessionId: string, myChildId: string) {
   }
 
   // OpenAIでヒントを生成
-const generateHint = async () => {
-  console.log("generateHint呼ばれた！")
-  if (loading || !sessionId) return
-  setLoading(true)
-  console.log("sessionId:", sessionId) 
-  console.log("myChildId:", myChildId) 
+  const generateHint = async () => {
+    if (loading || !sessionId) return
+    setLoading(true)
 
     try {
       const { my, opponent } = await fetchCategories()
@@ -97,14 +87,13 @@ const generateHint = async () => {
   }
 
   // 沈黙タイマーをリセット（音声検知時に呼ぶ）
+  // タイマーが切れたら1回だけヒントを生成する
   const resetSilenceTimer = () => {
-      console.log("resetSilenceTimer呼ばれた！")
     if (silenceTimerRef.current) {
       clearTimeout(silenceTimerRef.current)
     }
     silenceTimerRef.current = setTimeout(() => {
       generateHint()
-      resetSilenceTimer()
     }, SILENCE_THRESHOLD_SECONDS * 1000)
   }
 
