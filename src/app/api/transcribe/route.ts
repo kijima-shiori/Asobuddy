@@ -21,12 +21,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
 
-    if (!file || !(file instanceof File)) {
-      return NextResponse.json({ error: 'file is required' }, { status: 400 })
-    }
-
-    const fileName = `${Date.now()}-${file.name}`
-
+    const ext = file.name.split('.').pop() || 'mp3'
+    const fileName = `${crypto.randomUUID()}.${ext}`
     const arrayBuffer = await file.arrayBuffer()
 
     const { error: uploadError } = await supabase.storage

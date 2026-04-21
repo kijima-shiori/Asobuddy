@@ -1,0 +1,151 @@
+'use client'
+export const dynamic = 'force-dynamic'
+
+import { useState } from 'react'
+import Image from 'next/image'
+import { createClient } from '@supabase/supabase-js'
+import styles from './profile.module.css'
+
+export default function ProfilePage() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
+
+  const [birthday, setBirthday] = useState('')
+  const [gender, setGender] = useState('')
+  const [nativeLanguage, setNativeLanguage] = useState('')
+  const [iconFile, setIconFile] = useState<File | null>(null)
+  const [iconPreview, setIconPreview] = useState<string | null>(null)
+
+  const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setIconFile(file)
+      setIconPreview(URL.createObjectURL(file))
+    }
+  }
+
+  const calcAge = (birthday: string) => {
+    const birth = new Date(birthday)
+    const today = new Date()
+    let age = today.getFullYear() - birth.getFullYear()
+    const m = today.getMonth() - birth.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--
+    }
+    return age
+  }
+
+  const handleSave = async () => {
+    const supabase = createClient(url, key)
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) return alert('ログインしてください')
+
+    let icon_url = null
+
+    if (iconFile) {
+      const filePath = `icons/${user.id}-${Date.now()}.png`
+      const { error: uploadError } = await supabase.storage
+        .from('child-icons')
+        .upload(filePath, iconFile)
+
+      if (uploadError) {
+        console.error(uploadError)
+        alert('画像アップロードに失敗しました')
+        return
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('child-icons')
+        .getPublicUrl(filePath)
+
+      icon_url = urlData.publicUrl
+    }
+
+    const age = calcAge(birthday)
+
+    const { error: upsertError } = await supabase.from('children').upsert({
+      user_id: user.id,
+      birthday,
+      age,
+      gender,
+      native_language: nativeLanguage,
+      icon_url,
+    })
+
+    if (upsertError) {
+      console.error(upsertError)
+      alert('プロフィールの保存に失敗しました')
+      return
+    }
+
+    alert('プロフィールを保存しました')
+  }
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <Image
+          src="/images/background_purple-2.png"
+          alt="background"
+          fill
+          className={styles.bg}
+        />
+
+        <p className={styles.nickname}>Nickname</p>
+
+        <label className={styles.iconUpload}>
+          {iconPreview ? (
+            <Image
+              src={iconPreview}
+              alt="icon"
+              fill
+              className={styles.iconImg}
+            />
+          ) : (
+            <span className={styles.camera}>📷</span>
+          )}
+          <input
+            type="file"
+            className={styles.hiddenInput}
+            onChange={handleIconChange}
+          />
+        </label>
+      </div>
+
+      <div className={styles.form}>
+        <label>生年月日</label>
+        <input
+          type="date"
+          value={birthday}
+          onChange={(e) => setBirthday(e.target.value)}
+        />
+
+        <label>性別</label>
+        <select value={gender} onChange={(e) => setGender(e.target.value)}>
+          <option value="">選択してください</option>
+          <option value="male">男の子</option>
+          <option value="female">女の子</option>
+        </select>
+
+        <label>母国語</label>
+        <select
+          value={nativeLanguage}
+          onChange={(e) => setNativeLanguage(e.target.value)}
+        >
+          <option value="">選択してください</option>
+          <option value="japanese">日本語</option>
+          <option value="english">英語</option>
+        </select>
+
+        <button className={styles.okButton} onClick={handleSave}>
+          OK
+        </button>
+
+        <button className={styles.cancelButton}>キャンセル</button>
+      </div>
+    </div>
+  )
+}
