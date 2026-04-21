@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { getSupabase } from "@/lib/supabase";
 
 const SILENCE_THRESHOLD_SECONDS = 30
@@ -86,16 +86,15 @@ export function useAiHint(sessionId: string, myChildId: string) {
     }
   }
 
-  // 沈黙タイマーをリセット（音声検知時に呼ぶ）
-  // タイマーが切れたら1回だけヒントを生成する
-  const resetSilenceTimer = () => {
+  // useCallbackで関数を安定させる（再レンダリングで再生成されない）
+  const resetSilenceTimer = useCallback(() => {
     if (silenceTimerRef.current) {
       clearTimeout(silenceTimerRef.current)
     }
     silenceTimerRef.current = setTimeout(() => {
       generateHint()
     }, SILENCE_THRESHOLD_SECONDS * 1000)
-  }
+  }, [])
 
   useEffect(() => {
     if (!sessionId) return

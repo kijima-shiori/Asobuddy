@@ -21,6 +21,15 @@ function CallPageInner() {
   const sessionId = searchParams.get('sessionId') ?? ''
   const myChildId = searchParams.get('childId') ?? ''
 
+  // ② パラメータ未取得時のガード
+  if (!sessionId || !myChildId) {
+    return (
+      <div className="flex items-center justify-center h-screen text-center text-sm text-gray-500">
+        セッション情報がありません
+      </div>
+    )
+  }
+
   // AIヒントをpage.tsxで管理してresetSilenceTimerをVideoGridに渡す
   const { hint, loading, resetSilenceTimer } = useAiHint(sessionId, myChildId)
 
@@ -60,7 +69,7 @@ function CallPageInner() {
 
 export default function CallPage() {
   return (
-    <Suspense fallback={<div>読み込み中...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center h-screen text-sm text-gray-500">通話を準備しています…</div>}>
       <CallPageInner />
     </Suspense>
   )
