@@ -1,30 +1,48 @@
 'use client'
-
 import AgoraRTC, {
   AgoraRTCProvider,
   LocalUser,
   RemoteUser,
+  useVolumeLevel,
 } from 'agora-rtc-react'
 import { useAgoraCall } from '@/features/call/hooks/useAgoraCall'
+import { useEffect, useRef } from 'react'
 
-// clientをここで作る
 const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' })
 
 function VideoGridInner({
   sessionId,
   myChildId,
+  onVoiceDetected,
 }: {
   sessionId: string
   myChildId: string
+  onVoiceDetected: () => void
 }) {
-  // 1. useAgoraCallから値を取り出す
   const {
-    localMicrophoneTrack, // マイクの音声
-    localCameraTrack, // カメラの映像
-    remoteUsers, // 相手の一覧
+    localMicrophoneTrack,
+    localCameraTrack,
+    remoteUsers,
     micOn,
     cameraOn,
   } = useAgoraCall(sessionId, sessionId, myChildId)
+
+  // 自分の音量を監視
+  const volumeLevel = useVolumeLevel(localMicrophoneTrack ?? undefined)
+
+  // 話し始めた瞬間だけresetSilenceTimerを呼ぶ
+  const isSpeakingRef = useRef(false)
+
+  useEffect(() => {
+    if (volumeLevel > 0.05) {
+      if (!isSpeakingRef.current) {
+        onVoiceDetected() // 話し始めに1回だけ呼ぶ
+        isSpeakingRef.current = true
+      }
+    } else {
+      isSpeakingRef.current = false // 静かになったらフラグを戻す
+    }
+  }, [volumeLevel, onVoiceDetected])
 
   return (
     <div className="flex flex-col gap-4 p-4 h-full w-full">
@@ -65,17 +83,22 @@ function VideoGridInner({
   )
 }
 
-// AgoraRTCProviderで包んでexport
 export default function VideoGrid({
   sessionId,
   myChildId,
+  onVoiceDetected,
 }: {
   sessionId: string
   myChildId: string
+  onVoiceDetected: () => void
 }) {
   return (
     <AgoraRTCProvider client={client}>
-      <VideoGridInner sessionId={sessionId} myChildId={myChildId} />
+      <VideoGridInner
+        sessionId={sessionId}
+        myChildId={myChildId}
+        onVoiceDetected={onVoiceDetected}
+      />
     </AgoraRTCProvider>
   )
 }

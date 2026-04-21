@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { getSupabase } from "@/lib/supabase";
 
-const SILENCE_THRESHOLD_SECONDS = 10
+const SILENCE_THRESHOLD_SECONDS = 30
 
 export function useAiHint(sessionId: string, myChildId: string) {
   const [hint, setHint] = useState<string>("会話がとぎれたらヒントが出るよ！")
