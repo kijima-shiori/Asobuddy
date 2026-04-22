@@ -1,15 +1,17 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { getSupabase } from "@/lib/supabase";
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { getSupabase } from '@/lib/supabase'
 
 const SILENCE_THRESHOLD_SECONDS = 30
 
 export function useAiHint(sessionId: string, myChildId: string) {
-  const [hint, setHint] = useState<string>("会話がとぎれたらヒントが出るよ！")
+  const [hint, setHint] = useState<string>('会話がとぎれたらヒントが出るよ！')
   const [loading, setLoading] = useState(false)
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null)
-  const categoriesRef = useRef<{ my: string[], opponent: string[] } | null>(null)
+  const categoriesRef = useRef<{ my: string[]; opponent: string[] } | null>(
+    null,
+  )
 
   // Supabaseから両者の趣味タグを取得（初回のみ）
   const fetchCategories = async () => {
@@ -19,48 +21,52 @@ export function useAiHint(sessionId: string, myChildId: string) {
 
     try {
       const { data: session, error: sessionError } = await supabase
-        .from("sessions")
-        .select("child_a_id, child_b_id")
-        .eq("id", sessionId)
+        .from('sessions')
+        .select('child_a_id, child_b_id')
+        .eq('id', sessionId)
         .single()
 
       if (sessionError || !session) {
-        console.error("セッション取得エラー:", sessionError)
+        console.error('セッション取得エラー:', sessionError)
         return { my: [], opponent: [] }
       }
 
-      const opponentChildId = session.child_a_id === myChildId
-        ? session.child_b_id
-        : session.child_a_id
+      const opponentChildId =
+        session.child_a_id === myChildId
+          ? session.child_b_id
+          : session.child_a_id
 
-      const fetchChildCategories = async (childId: string): Promise<string[]> => {
+      const fetchChildCategories = async (
+        childId: string,
+      ): Promise<string[]> => {
         const { data, error } = await supabase
-          .from("child_categories")
-          .select(`
+          .from('child_categories')
+          .select(
+            `
             categories (
               name
             )
-          `)
-          .eq("child_id", childId);
+          `,
+          )
+          .eq('child_id', childId)
 
         if (error || !data) {
-          console.error("カテゴリ取得失敗:", error);
-          return [];
+          console.error('カテゴリ取得失敗:', error)
+          return []
         }
 
-        return data.map((item: any) => item.categories?.name).filter(Boolean);
+        return data.map((item: any) => item.categories?.name).filter(Boolean)
       }
 
       const [myCategories, opponentCategories] = await Promise.all([
         fetchChildCategories(myChildId),
-        fetchChildCategories(opponentChildId)
+        fetchChildCategories(opponentChildId),
       ])
 
       categoriesRef.current = { my: myCategories, opponent: opponentCategories }
       return categoriesRef.current
-
     } catch (e) {
-      console.error("カテゴリ取得エラー:", e)
+      console.error('カテゴリ取得エラー:', e)
       return { my: [], opponent: [] }
     }
   }
@@ -72,15 +78,18 @@ export function useAiHint(sessionId: string, myChildId: string) {
 
     try {
       const { my, opponent } = await fetchCategories()
-      const response = await fetch("/api/calls/hint", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ myCategories: my, opponentCategories: opponent })
+      const response = await fetch('/api/calls/hint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          myCategories: my,
+          opponentCategories: opponent,
+        }),
       })
       const data = await response.json()
       if (data.hint) setHint(data.hint)
     } catch (e) {
-      console.error("ヒント生成エラー:", e)
+      console.error('ヒント生成エラー:', e)
     } finally {
       setLoading(false)
     }

@@ -97,21 +97,24 @@ export default function InterestPicker({ userId }: InterestPickerProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white mx-auto max-w-md border-x border-gray-100 shadow-xl">
+    <div className="min-h-screen bg-[#F0F2FF] mx-auto max-w-md border-x border-gray-100 shadow-xl">
       <div className="relative w-full aspect-[4/3] overflow-hidden">
         <img
-          src="/background_blue-1.png"
+          src="/background_blue.png"
           alt="Hobby Background"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 flex flex-col justify-center px-8 text-white">
-          <h1 className="text-4xl font-bold">Hobby</h1>
-          <p className="text-sm opacity-90">Choose what you like !</p>
+          <h1 className="text-5xl font-bold">Hobby</h1>
+          <p className="pt-5 font-bold">
+            Choose what you like !<br />
+            あなたが好きなことをおしえて！
+          </p>
         </div>
       </div>
 
       <div className="p-6">
-        <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-3">
           {HOBBIES.map((hobby) => {
             const isSelected = selectedIds.includes(hobby.id)
 
@@ -121,17 +124,17 @@ export default function InterestPicker({ userId }: InterestPickerProps) {
                 onClick={() => toggleHobby(hobby.id)}
                 className={`
                                 flex flex-col items-center justify-center
-                  aspect-square rounded-2xl border-orange-200 transition-all
+                  h-30 rounded-3xl border-1 border-[#FFA451] hover:bg-orange-50 shadow-[0px_4px_4px_0_#B0B6CE] transition-all
                   ${
                     isSelected
-                      ? 'bg-orange-50 border-orange-200'
-                      : 'bg-white border-gray-100 shadow-sm'
+                      ? 'bg-orange-50 border-1 border-[#FFA451]'
+                      : 'bg-white border-gray-100 shadow-[0px_4px_4px_0_#B0B6CE]'
                   }
                             `}
               >
                 {/* ボタンの中の文字 */}
                 <span
-                  className={`text-lg font-medium ${isSelected ? 'text-orange-600' : 'text-gray-700'}`}
+                  className={`font-bold text-[#27214D] ${isSelected ? 'text-orange-600' : 'text-gray-700'}`}
                 >
                   {hobby.label}
                 </span>
@@ -139,15 +142,14 @@ export default function InterestPicker({ userId }: InterestPickerProps) {
             )
           })}
         </div>
-      </div>
-
-      <div className="mt-12 mb-8">
-        <button
-          onClick={handleSave}
-          className="w-full py-4 bg-orange-400 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
-        >
-          OK
-        </button>
+        <div className="mt-6 mb-10">
+          <button
+            onClick={handleSave}
+            className="w-full py-5 bg-[#FFA451] text-white font-bold hover:bg-[#FFC897] rounded-2xl shadow-[0px_4px_4px_0_#B0B6CE] active:scale-95 transition-all"
+          >
+            OK
+          </button>
+        </div>
       </div>
     </div>
   )
