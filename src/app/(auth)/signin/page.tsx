@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getSupabase } from '@/lib/supabase'
+import { loginAction } from './actions'
 
-export const dynamic = 'force-dynamic' // これを追加
+export const dynamic = 'force-dynamic'
+
 export default function SignInPage() {
   const router = useRouter()
 
@@ -13,14 +14,10 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false)
 
   const handleLogin = async () => {
-    const supabase = getSupabase()
     if (loading) return
     setLoading(true)
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    const { error } = await loginAction(email, password)
 
     if (error) {
       alert('ログインに失敗しました：' + error.message)
@@ -34,7 +31,6 @@ export default function SignInPage() {
   return (
     <div className="relative w-full h-[45vh] px-4 pt-4">
       {/* 上部 45% 背景画像 */}
-
       <div className="relative w-full h-[45vh] md:h-[50vh] lg:h-[55vh] px-4 pt-4">
         <div
           className="w-full h-full rounded-xl bg-no-repeat bg-cover bg-top"
@@ -78,13 +74,14 @@ export default function SignInPage() {
           onChange={(e) => setPassword(e.target.value)}
           className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FFA451]"
         />
-        {/* 🔥 ログインボタン */}
+
+        {/* ログインボタン */}
         <button
           onClick={handleLogin}
           disabled={loading}
           className="w-full bg-[#FFA451] text-white py-3 rounded-lg font-semibold mt-2"
         >
-          Next
+          {loading ? '処理中...' : 'Next'}
         </button>
 
         <div className="w-full border-t border-black my-4"></div>
