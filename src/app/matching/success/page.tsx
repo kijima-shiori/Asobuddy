@@ -2,12 +2,11 @@
 
 import { getSupabase } from '@/lib/supabase'
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense, use } from 'react'
 import { PartnerProfile } from '@/types'
 import { ChildCategoryResponse } from '@/types/supabase'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Sirivennela } from 'next/font/google'
 
 // 生年月日から年齢を算出---------------------------
 const calculateAge = (birthday: string) => {
@@ -117,14 +116,18 @@ function SuccessContent() {
   }
 
   const handleCancel = () => {
-    router.push(`/dashboard`)
+    if (userId) {
+      router.push(`/dashboard?childId=${userId}`)
+    } else {
+      router.push(`/signin`)
+    }
   }
 
   // 表示部分------------------------------
   return (
     <div
       className="min-h-screen flex flex-col items-center pt-20 px-2 relative overflow-hidden bg-cover bg-top bg-no-repeat"
-      style={{ backgroundImage: "url('/background_green-2.png'" }}
+      style={{ backgroundImage: "url('/images/background_green-2.png'" }}
     >
       <style>{`
         @keyframes float {
@@ -143,14 +146,15 @@ function SuccessContent() {
         </div>
       ) : (
         // loadingがfalseの時、マッチング相手を表示
-        <div className="p-20 flex flex-col items-center justify-center h-full relative z-10 w-full">
+        <div className="p-10 flex flex-col items-center justify-center h-full relative z-10 w-full">
           {/* イラスト */}
           <div className="absolute top-[0%] right-[5%] h-[120px] animate-float z-20 pointer-events-none">
             <Image
-              src="/rocket.png"
+              src="/images/rocket.png"
               alt="Space Ship"
               width={120}
               height={120}
+              style={{ height: 'auto' }}
               className="w-full h-full object-contain"
             />
           </div>
@@ -158,12 +162,14 @@ function SuccessContent() {
           {/* カード部分 */}
           <div className="bg-white rounded-[15px] w-full max-w-[800px] pt-16 pb-8 px-12 shadow-[2px_4px_4px_0_#B0CBCC] relative mt-16">
             {/* アイコン */}
-            <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full border-8 border-white bg-[#FFEFBA] shadow-md overflow-hidden flex items-center justify-center">
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full border-8 border-white bg-[#FFEFBA] shadow-md overflow-hidden flex items-center justify-center relative">
               {partner?.icon_url ? (
                 <Image
                   src={partner.icon_url || ''}
                   alt="icon"
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="100px"
+                  className="object-cover"
                 />
               ) : (
                 <span className="text-5xl">👧</span>
@@ -171,7 +177,7 @@ function SuccessContent() {
             </div>
 
             {/* 名前 */}
-            <h1 className="text-[#2D6F7F] text-5xl font-black text-center mb-8">
+            <h1 className="text-[#2D6F7F] text-5xl font-black text-center mb-8 -mt-3">
               {partner?.name}
             </h1>
 

@@ -14,23 +14,40 @@ export const sendHeartbeat = async (sessionId: string) => {
   }
 }
 
-// ----------------------------------
 /**
  * 新しいマッチング予約(Session)を作成する
- * @param childId 作成者のID
  */
 export const createSession = async (userId: string) => {
-  // 15秒間Heartbeatが確認できなかった人を除外する
-  const fifteenSecondAgo = new Date(Date.now() - 15 * 1000).toISOString()
   const supabase = getSupabase()
+  const fifteenSecondAgo = new Date(Date.now() - 15 * 1000).toISOString()
+  const freshTime = new Date(Date.now() - 5 * 1000).toISOString()
+
+  // --- ① 2重登録防止：今まさに有効な待機セッションがあるかチェック ---
+  const { data: existingActiveSession } = await supabase
+    .from('sessions')
+    .select('*')
+    .eq('child_a_id', userId)
+    .eq('status', 'waiting')
+    .gt('updated_at', freshTime) // 15秒以内に動いてる「生きてる」やつ
+    .limit(1)
+
+  if (existingActiveSession && existingActiveSession.length > 0) {
+    console.log(
+      '有効なセッションが既にあるので再利用します:',
+      existingActiveSession[0].id,
+    )
+    return existingActiveSession[0]
+  }
+
+  // --- ② ゴミ掃除：自分の「本当に古い」待機データだけ消す ---
   await supabase
     .from('sessions')
     .delete()
     .eq('status', 'waiting')
     .eq('child_a_id', userId)
-    .lt('updated_at', fifteenSecondAgo) //lessthan 15秒前よりも古い
+    .lt('updated_at', fifteenSecondAgo) // 15秒以上放置された古いものだけ
 
-  // 自分の好きなことをリストで取得-----------------------------
+  // --- ③ 趣味の取得 ---
   const { data: myInterests } = await supabase
     .from('child_categories')
     .select('category_id')
@@ -38,27 +55,12 @@ export const createSession = async (userId: string) => {
 
   const myCategoryIds = myInterests?.map((i) => i.category_id) || []
 
-  // ----------------2重登録禁止
-  // 自分がwaitingですでに待っていないかを確認する（Reactの2回実行を防止）
-  const { data: existingSession } = await supabase
-    .from('sessions')
-    .select('*')
-    .eq('child_a_id', userId)
-    .eq('status', 'waiting')
-    .limit(1)
-
-  // すでにwaitingに自分が登録されたら、新しくinsertせずにreturnで終わる。
-  if (existingSession && existingSession.length > 0) {
-    return existingSession[0]
-  }
-
-  // 好きなことが登録されてない場合----------------------
   if (myCategoryIds.length === 0) {
     console.log('好きなことが登録されてないよ')
     return { status: 'no_interests' }
   }
 
-  // 待機中のセッションをリストアップ-----------------------------
+  // --- ④ マッチング相手を探す ---
   const { data: waitingSessions } = await supabase
     .from('sessions')
     .select('id, child_a_id')
@@ -67,40 +69,35 @@ export const createSession = async (userId: string) => {
     .gt('updated_at', fifteenSecondAgo)
     .order('created_at', { ascending: true })
 
-  // waitingリストを一つずつ順番に見る-----------------------------
   if (waitingSessions && waitingSessions.length > 0) {
     for (const waitingRoom of waitingSessions) {
-      // その子の趣味を調べて、自分の趣味リスト（myCategoryIds）と合うか確認！
       const { data: partnerInterests } = await supabase
         .from('child_categories')
         .select('category_id')
         .eq('child_id', waitingRoom.child_a_id)
         .in('category_id', myCategoryIds)
 
-      // 共通の趣味が1つでも見つかったら、マッチング成立-----------------------------
       if (partnerInterests && partnerInterests.length > 0) {
-        // 合流処理
+        // マッチング成立処理
         const { data, error } = await supabase
           .from('sessions')
           .update({
             child_b_id: userId,
             status: 'matched',
             matched_at: new Date().toISOString(),
+            room_id: waitingRoom.id,
           })
           .eq('id', waitingRoom.id)
           .eq('status', 'waiting')
           .select()
           .single()
 
-        if (error) {
-          continue
-        }
-        return data
+        if (!error && data) return data
       }
     }
   }
 
-  // 誰もいなければ、自分がchild_a_idになってwaitingになる
+  // --- ⑤ 誰もいなければ新規作成 ---
   const { data, error } = await supabase
     .from('sessions')
     .insert([
@@ -116,16 +113,13 @@ export const createSession = async (userId: string) => {
   if (error) throw error
   return data
 }
-// ----------------------------------
 
 /**
- * セッションをキャンセル（中断）する
- * @param sessionId 対象のセッションID
+ * セッションをキャンセルする
  */
 export const cancelSession = (sessionId: string) => {
   const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/sessions?id=eq.${sessionId}`
 
-  // fetchに「keepalive: true」をつけると、タブを閉じても通信を最後まで完遂してくれる
   fetch(url, {
     method: 'PATCH',
     headers: {
