@@ -4,27 +4,22 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 export async function POST() {
-  console.log('STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY)
-
   try {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
-
-    // ★ Next.js 15 では cookies() は Promise
-    const cookieStore = await cookies()
-
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
       {
         cookies: {
-          get(name) {
-            return cookieStore.get(name)?.value
+          async getAll() {
+            const store = await cookies()
+            return store.getAll()
           },
-          set(name, value, options) {
-            cookieStore.set(name, value, options)
-          },
-          remove(name, options) {
-            cookieStore.set(name, '', { ...options, maxAge: 0 })
+          async setAll(cookiesToSet) {
+            const store = await cookies()
+            cookiesToSet.forEach(({ name, value, options }) => {
+              store.set(name, value, options)
+            })
           },
         },
       },
@@ -36,7 +31,6 @@ export async function POST() {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      console.log('❌ No user found → 401')
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 

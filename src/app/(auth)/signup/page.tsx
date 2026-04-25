@@ -31,7 +31,7 @@ export default function SignInPage() {
     if (!user) return
 
     // ③ 次のページへ遷移
-    router.push('/signin')
+    router.push('/account')
   }
 
   return (
@@ -47,11 +47,11 @@ export default function SignInPage() {
         ></div>
 
         {/* テキスト配置 */}
-        <div className="absolute top-55 left-12 text-left">
-          <h1 className="text-5xl font-bold" style={{ color: '#ffffff' }}>
-            アカウント作成
+        <div className="absolute top-32 left-12 text-left">
+          <h1 className="text-5xl font-bold" style={{ color: '#d3dbdd' }}>
+            Create
             <br />
-            Create your Account
+            Account
           </h1>
         </div>
       </div>
@@ -59,7 +59,7 @@ export default function SignInPage() {
       {/* 入力欄 */}
       <div className="flex flex-col px-8 mt-12 space-y-6">
         <label className="text-black font-medium font-sans mt-8">
-          メールアドレス/Email Address
+          メールアドレス
         </label>
         <input
           type="email"
@@ -70,7 +70,7 @@ export default function SignInPage() {
         />
 
         <label className="text-black font-medium font-sans mt-6">
-          パスワード/Password
+          パスワード
         </label>
         <input
           type="password"
@@ -85,7 +85,7 @@ export default function SignInPage() {
           disabled={loading}
           className="w-full bg-[#FFA451] text-white py-3 rounded-lg font-semibold mt-2"
         >
-          次へ/Next
+          Next
         </button>
       </div>
     </div>
