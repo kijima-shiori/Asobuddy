@@ -51,7 +51,7 @@ export default function DashboardPage() {
       {/* トップ画面 */}
       <div className="relative w-full h-[300px] flex-shrink-0">
         <Image
-          src="/backbround_purple-1.png"
+          src="/images/backbround_purple-1.png"
           alt="home背景"
           fill
           className="object-cover object-top w-full"
