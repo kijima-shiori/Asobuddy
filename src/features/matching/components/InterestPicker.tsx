@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { getSupabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 
 const HOBBIES = [
   { id: '1b3d6e76-449f-46e5-99b6-489b1d4d36d9', label: 'アニメ' },
@@ -16,11 +17,39 @@ const HOBBIES = [
   { id: 'b6403dd0-139e-44a0-8324-317c0748c49c', label: 'うちゅう' },
 ]
 
-export default function InterestPicker() {
-  const [selectedIds, setSelectedIds] = useState<string[]>([])
+// 窓口を作る何を受け取るか定義
+interface InterestPickerProps {
+  userId: string
+}
 
-  // 仮のID（自分のSupabaseからコピーしたUUID）
-  const userId = '17b0a1d9-4656-4939-9ee4-cd2b9e7a5884'
+// 窓口を開く
+export default function InterestPicker({ userId }: InterestPickerProps) {
+  const router = useRouter()
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [showSuccess, setShowSuccess] = useState(false)
+
+  // ページが開いたときに保存済みの趣味を撮ってきて表示
+  useEffect(() => {
+    const fetchSavedHobbies = async () => {
+      if (!userId) return
+
+      const supabase = getSupabase()
+      const { data, error } = await supabase
+        .from('child_categories')
+        .select('category_id')
+        .eq('child_id', userId)
+
+      if (error) {
+        console.error('趣味の読み込みに失敗：', error.message)
+        return
+      }
+
+      const savedIds = data.map((item) => item.category_id)
+      setSelectedIds(savedIds)
+    }
+    fetchSavedHobbies()
+  }, [userId])
 
   //---------------  趣味保存ボタンを押したときに実行される内容
   const handleSave = async () => {
@@ -31,6 +60,8 @@ export default function InterestPicker() {
       category_id: catId,
     }))
 
+    await supabase.from('child_categories').delete().eq('child_id', userId)
+
     const { error } = await supabase
       .from('child_categories')
       .upsert(insertData, { onConflict: 'child_id,category_id' })
@@ -38,7 +69,10 @@ export default function InterestPicker() {
     if (error) {
       alert('保存に失敗しました:' + error.message)
     } else {
-      alert('カテゴリの登録が完了しました。')
+      setShowSuccess(true)
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 2000)
     }
   }
 
@@ -52,22 +86,35 @@ export default function InterestPicker() {
     }
   }
 
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen bg-white/50 flex flex-col items-center justify-center p-8">
+        <h2 className="text-2xl text-[#1F2937] mb-2 font-bold text-center">
+          冒険の準備ができたよ！
+        </h2>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-white mx-auto max-w-md border-x border-gray-100 shadow-xl">
+    <div className="min-h-screen bg-[#F0F2FF] mx-auto max-w-md border-x border-gray-100 shadow-xl">
       <div className="relative w-full aspect-[4/3] overflow-hidden">
         <img
-          src="/background_blue-1.png"
-          alt="Hobby Background"
+          src="/images/background_blue.png"
+          alt="Hobby"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 flex flex-col justify-center px-8 text-white">
-          <h1 className="text-4xl font-bold">Hobby</h1>
-          <p className="text-sm opacity-90">Choose what you like !</p>
+          <h1 className="text-5xl font-bold">Hobby</h1>
+          <p className="pt-5 font-bold">
+            Choose what you like !<br />
+            あなたが好きなことをおしえて！
+          </p>
         </div>
       </div>
 
       <div className="p-6">
-        <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-3">
           {HOBBIES.map((hobby) => {
             const isSelected = selectedIds.includes(hobby.id)
 
@@ -77,17 +124,17 @@ export default function InterestPicker() {
                 onClick={() => toggleHobby(hobby.id)}
                 className={`
                                 flex flex-col items-center justify-center
-                  aspect-square rounded-2xl border-orange-200 transition-all
+                  h-30 rounded-3xl border-1 border-[#FFA451] hover:bg-orange-50 shadow-[0px_4px_4px_0_#B0B6CE] transition-all
                   ${
                     isSelected
-                      ? 'bg-orange-50 border-orange-200'
-                      : 'bg-white border-gray-100 shadow-sm'
+                      ? 'bg-orange-50 border-1 border-[#FFA451]'
+                      : 'bg-white border-gray-100 shadow-[0px_4px_4px_0_#B0B6CE]'
                   }
                             `}
               >
                 {/* ボタンの中の文字 */}
                 <span
-                  className={`text-lg font-medium ${isSelected ? 'text-orange-600' : 'text-gray-700'}`}
+                  className={`font-bold text-[#27214D] ${isSelected ? 'text-orange-600' : 'text-gray-700'}`}
                 >
                   {hobby.label}
                 </span>
@@ -95,15 +142,14 @@ export default function InterestPicker() {
             )
           })}
         </div>
-      </div>
-
-      <div className="mt-12 mb-8">
-        <button
-          onClick={handleSave}
-          className="w-full py-4 bg-orange-400 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
-        >
-          OK
-        </button>
+        <div className="mt-6 mb-10">
+          <button
+            onClick={handleSave}
+            className="w-full py-5 bg-[#FFA451] text-white font-bold hover:bg-[#FFC897] rounded-2xl shadow-[0px_4px_4px_0_#B0B6CE] active:scale-95 transition-all"
+          >
+            OK
+          </button>
+        </div>
       </div>
     </div>
   )

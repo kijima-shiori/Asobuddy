@@ -1,15 +1,20 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useState, useRef } from 'react'
-import { createSession } from '@/features/matching/services/matchService'
+import { useEffect, useState, useRef, Suspense } from 'react'
+import {
+  cancelSession,
+  createSession,
+} from '@/features/matching/services/matchService'
 import { useHeartbeat } from '@/features/matching/hooks/useHeartbeat'
 import { useMatchRealtime } from '@/features/matching/hooks/useMatchRealtime'
 import { useRouter } from 'next/navigation'
 import { Session } from '@/types'
+import { useSearchParams } from 'next/navigation'
 
-export default function MatchingPage() {
-  const userId = '17b0a1d9-4656-4939-9ee4-cd2b9e7a5884'
+function MatchingInner() {
+  const searchParams = useSearchParams()
+  const userId = searchParams.get('childId')
   const isStarted = useRef(false)
   const router = useRouter()
 
@@ -17,9 +22,12 @@ export default function MatchingPage() {
   const [matchResult, setMatchResult] = useState<Session | null>(null)
 
   useHeartbeat(matchResult?.id)
-  useMatchRealtime(matchResult?.id)
+  useMatchRealtime(matchResult?.id, userId)
 
   useEffect(() => {
+    // 子供のidが取得できなかったら何もしないで終わる
+    if (!userId) return
+
     // 2重実行禁止-----------------
     if (isStarted.current) return
     isStarted.current = true
@@ -28,12 +36,15 @@ export default function MatchingPage() {
     const startMatching = async () => {
       try {
         const session = await createSession(userId)
+        console.log('作成されたセッションID:', session.id)
 
         // setMatchResultで結果を書き込む前にマッチングしたら追い出す
         // 書き込みを先にすると、matchedしてもwaiting状態で残ってしまう
         if (session.status === 'matched') {
           console.log('マッチングしたよ！お友達を紹介します')
-          router.push(`/matching/success?session_id=${session.id}`)
+          router.push(
+            `/matching/success?session_id=${session.id}&userId=${userId}`,
+          )
           return
         }
 
@@ -48,12 +59,46 @@ export default function MatchingPage() {
     startMatching()
   }, [userId])
 
+  // タブを閉じた子をキャンセルに変更する処理--------------------
+  useEffect(() => {
+    const handleTabClose = () => {
+      if (matchResult?.id && matchResult.status === 'waiting') {
+        cancelSession(matchResult.id)
+      }
+    }
+    // ここにタブを閉じた時の条件が入ってる。
+    // beforeunload: ブラウザの特別なイベント名「タブを閉じようとした瞬間」 または 「別のページに移動しようとした瞬間」
+    window.addEventListener('beforeunload', handleTabClose)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleTabClose)
+
+      if (matchResult?.id && matchResult.status === 'waiting') {
+        console.log('画面を離れるのでお片付けします')
+        cancelSession(matchResult.id)
+      }
+    }
+  }, [matchResult])
+
+  const handleManualCancel = async () => {
+    if (matchResult?.id) {
+      console.log('戻るボタンを押します')
+      await cancelSession(matchResult.id)
+      router.push(`/dashboard?childId=${userId}`)
+    }
+  }
+
+  if (!userId)
+    return (
+      <div className="p-10 text-center">Loading...またはIDが見つかりません</div>
+    )
+
   //   ------------画面表示------------
   return (
     <main className="min-h-screen bg-[#1F2937] max-w-md mx-auto flex flex-col shadow-2xl relative overflow-hidden">
       <div className="relative w-full min-h-[400px] h-[70vh]">
         <Image
-          src="/background_matching.png"
+          src="/images/background_matching.png"
           alt="宇宙のイラスト"
           fill
           className="object-cover object-top"
@@ -62,7 +107,7 @@ export default function MatchingPage() {
         />
       </div>
 
-      <div className="bg-white  mt-[-40px] relative flex-grow flex flex-col items-center p-10">
+      <div className="bg-[#F8F9FF]  mt-[-40px] relative flex-grow flex flex-col items-center p-10">
         <h1 className="text-xl font-black text-[#27214D] mb-4 text-center leading-tight">
           友達を探す旅に出かけよう！
         </h1>
@@ -77,11 +122,27 @@ export default function MatchingPage() {
           <div className="w-24 h-24 bg-orange-400 rounded-full shadow-lg shadow-orange-200"></div>
         </div>
 
-        {/* ステータスの文字（今は仮で） */}
+        {/* ステータスの文字 */}
         <p className="mt-8 text-gray-400 font-bold tracking-widest animate-pulse">
           MATCHING...
         </p>
+
+        {/* 手動キャンセルボタン */}
+        <button
+          onClick={handleManualCancel}
+          className="mt-12 bg-white text-[#FFA451] font-black border-2 border-[#FFA451] rounded-xl px-10 py-3 hover:bg-orange-50 transition-colors shadow-sm"
+        >
+          Cancel
+        </button>
       </div>
     </main>
+  )
+}
+
+export default function MatchingPage() {
+  return (
+    <Suspense fallback={<div className="p-10 text-center">Loading...</div>}>
+      <MatchingInner />
+    </Suspense>
   )
 }
