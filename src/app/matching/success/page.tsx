@@ -127,7 +127,7 @@ function SuccessContent() {
   return (
     <div
       className="min-h-screen flex flex-col items-center pt-20 px-2 relative overflow-hidden bg-cover bg-top bg-no-repeat"
-      style={{ backgroundImage: "url('/background_green-2.png'" }}
+      style={{ backgroundImage: "url('/images/background_green-2.png'" }}
     >
       <style>{`
         @keyframes float {
@@ -150,7 +150,7 @@ function SuccessContent() {
           {/* イラスト */}
           <div className="absolute top-[0%] right-[5%] h-[120px] animate-float z-20 pointer-events-none">
             <Image
-              src="/rocket.png"
+              src="/images/rocket.png"
               alt="Space Ship"
               width={120}
               height={120}
@@ -168,6 +168,7 @@ function SuccessContent() {
                   src={partner.icon_url || ''}
                   alt="icon"
                   fill
+                  sizes="100px"
                   className="object-cover"
                 />
               ) : (

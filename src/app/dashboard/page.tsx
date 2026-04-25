@@ -70,7 +70,7 @@ export default function DashboardPage() {
             {/* 男の子 */}
             <div className="relative w-32 h-32 pb-2 flex items-end justify-center translate-y-4">
               <Image
-                src="/boy.png"
+                src="/images/boy.png"
                 alt="男の子"
                 fill // width/heightの代わりに fill を使う
                 sizes="128px"
@@ -98,7 +98,7 @@ export default function DashboardPage() {
             {/* 女の子 */}
             <div className="relative w-[120px] h-[120px] pb-2 flex items-end justify-center translate-y-4">
               <Image
-                src="/girl.png"
+                src="/images/girl.png"
                 alt="女の子"
                 fill // width/heightの代わりに fill を使う
                 sizes="120px"
@@ -119,7 +119,7 @@ export default function DashboardPage() {
           <div className="relative w-15 h-15">
             {/* アイコンのサイズを指定 */}
             <Image
-              src="/Rocket.svg"
+              src="/images/Rocket.svg"
               alt="友達を探す"
               fill
               sizes="64px"
@@ -143,7 +143,7 @@ export default function DashboardPage() {
           <div className="relative w-10 h-10">
             {/* アイコンのサイズを指定 */}
             <Image
-              src="/Baby.svg"
+              src="/images/Baby.svg"
               alt="プロフィール"
               fill
               sizes="64px"
@@ -166,7 +166,7 @@ export default function DashboardPage() {
           <div className="relative w-12 h-12">
             {/* アイコンのサイズを指定 */}
             <Image
-              src="/Heart.svg"
+              src="/images/Heart.svg"
               alt="好きなこと"
               fill
               sizes="64px"
@@ -189,7 +189,7 @@ export default function DashboardPage() {
           <div className="relative w-12 h-12">
             {/* アイコンのサイズを指定 */}
             <Image
-              src="/MoonStars.svg"
+              src="/images/MoonStars.svg"
               alt="設定"
               fill
               sizes="64px"

@@ -98,7 +98,7 @@ function MatchingInner() {
     <main className="min-h-screen bg-[#1F2937] max-w-md mx-auto flex flex-col shadow-2xl relative overflow-hidden">
       <div className="relative w-full min-h-[400px] h-[70vh]">
         <Image
-          src="/background_matching.png"
+          src="/images/background_matching.png"
           alt="宇宙のイラスト"
           fill
           className="object-cover object-top"

@@ -100,8 +100,8 @@ export default function InterestPicker({ userId }: InterestPickerProps) {
     <div className="min-h-screen bg-[#F0F2FF] mx-auto max-w-md border-x border-gray-100 shadow-xl">
       <div className="relative w-full aspect-[4/3] overflow-hidden">
         <img
-          src="/background_blue.png"
-          alt="Hobby Background"
+          src="/images/background_blue.png"
+          alt="Hobby"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 flex flex-col justify-center px-8 text-white">
