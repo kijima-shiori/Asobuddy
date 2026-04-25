@@ -10,6 +10,7 @@ export default function ProfilePage() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
 
+  const [nickname, setNickname] = useState('')
   const [birthday, setBirthday] = useState('')
   const [gender, setGender] = useState('')
   const [nativeLanguage, setNativeLanguage] = useState('')
@@ -24,17 +25,6 @@ export default function ProfilePage() {
     }
   }
 
-  const calcAge = (birthday: string) => {
-    const birth = new Date(birthday)
-    const today = new Date()
-    let age = today.getFullYear() - birth.getFullYear()
-    const m = today.getMonth() - birth.getMonth()
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-      age--
-    }
-    return age
-  }
-
   const handleSave = async () => {
     const supabase = createClient(url, key)
     const {
@@ -43,8 +33,16 @@ export default function ProfilePage() {
 
     if (!user) return alert('ログインしてください')
 
-    let icon_url = null
+    // ★ 既存データを取得（icon_url を維持するため）
+    const { data: existing } = await supabase
+      .from('children')
+      .select('icon_url')
+      .eq('user_id', user.id)
+      .single()
 
+    let icon_url = existing?.icon_url ?? null
+
+    // ★ アイコンが新しく選択された場合のみアップロード
     if (iconFile) {
       const filePath = `icons/${user.id}-${Date.now()}.png`
       const { error: uploadError } = await supabase.storage
@@ -64,16 +62,20 @@ export default function ProfilePage() {
       icon_url = urlData.publicUrl
     }
 
-    const age = calcAge(birthday)
+    // ★ age を削除した upsert
+    const { error: upsertError } = await supabase.from('children').upsert(
+      {
+        user_id: user.id,
+        name: nickname,
+        birthday,
+        gender,
+        native_language: nativeLanguage,
+        icon_url,
+      },
+      { onConflict: 'user_id' },
+    )
 
-    const { error: upsertError } = await supabase.from('children').upsert({
-      user_id: user.id,
-      birthday,
-      age,
-      gender,
-      native_language: nativeLanguage,
-      icon_url,
-    })
+    console.error('UPSERT ERROR:', upsertError)
 
     if (upsertError) {
       console.error(upsertError)
@@ -94,7 +96,13 @@ export default function ProfilePage() {
           className={styles.bg}
         />
 
-        <p className={styles.nickname}>Nickname</p>
+        <input
+          type="text"
+          placeholder="ニックネーム/Nickname"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+          className={styles.nicknameInput}
+        />
 
         <label className={styles.iconUpload}>
           {iconPreview ? (
@@ -116,35 +124,35 @@ export default function ProfilePage() {
       </div>
 
       <div className={styles.form}>
-        <label>生年月日</label>
+        <label>生年月日/Birthday</label>
         <input
           type="date"
           value={birthday}
           onChange={(e) => setBirthday(e.target.value)}
         />
 
-        <label>性別</label>
+        <label>性別/Gender</label>
         <select value={gender} onChange={(e) => setGender(e.target.value)}>
-          <option value="">選択してください</option>
-          <option value="male">男の子</option>
-          <option value="female">女の子</option>
+          <option value="">選択してください/Select</option>
+          <option value="male">男の子/Boy</option>
+          <option value="female">女の子/Girl</option>
         </select>
 
-        <label>母国語</label>
+        <label>母国語/Native Language</label>
         <select
           value={nativeLanguage}
           onChange={(e) => setNativeLanguage(e.target.value)}
         >
-          <option value="">選択してください</option>
-          <option value="japanese">日本語</option>
-          <option value="english">英語</option>
+          <option value="">選択してください/Select</option>
+          <option value="japanese">日本語/Japanese</option>
+          <option value="english">英語/English</option>
         </select>
 
         <button className={styles.okButton} onClick={handleSave}>
           OK
         </button>
 
-        <button className={styles.cancelButton}>キャンセル</button>
+        <button className={styles.cancelButton}>キャンセル/Cancel</button>
       </div>
     </div>
   )
