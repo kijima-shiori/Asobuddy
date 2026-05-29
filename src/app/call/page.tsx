@@ -26,12 +26,35 @@ function CallPageInner() {
 
     setIsEnding(true)
 
+    const demoTranscript = `
+Lily: Hi Hana! What do you like to do?
+Hana: I like cooking. I made cookies with my dad.
+Lily: That sounds fun! I like cooking too.
+Hana: Really? What do you like to make?
+Lily: I like making cupcakes. I also like SPY×FAMILY and Pokémon.
+Hana: I like SPY×FAMILY too! My favorite character is Anya.
+Lily: Me too! Anya is cute.
+Hana: I was happy to talk with you.
+Lily: Me too. Let's talk again!
+`
+
     await fetch('/api/calls/end', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ sessionId }),
+    })
+
+    await fetch('/api/report', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sessionId,
+        transcript: demoTranscript,
+      }),
     })
 
     router.push(`/report?sessionId=${sessionId}`)
@@ -82,7 +105,6 @@ function CallPageInner() {
 
     fetchSessionAndChild()
   }, [])
-
   return (
     <div className="relative h-screen w-full overflow-hidden flex flex-col">
       {/* 背景画像 */}
