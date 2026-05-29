@@ -4,10 +4,10 @@ import { useState, useEffect, Suspense } from 'react'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import AiHintPanel from '@/features/call/components/AiHintPanel'
-import CallTimer from '@/features/call/components/CallTimer'
 import CallControls from '@/features/call/components/CallControls'
 import CallEndScreen from '@/features/call/components/CallEndScreen'
 import { getSupabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 
 const VideoGrid = dynamic(
   () => import('@/features/call/components/VideoGrid'),
@@ -15,21 +15,42 @@ const VideoGrid = dynamic(
 )
 
 function CallPageInner() {
+  const router = useRouter()
   const [callEnded] = useState(false)
   const [sessionId, setSessionId] = useState<string>('')
   const [myChildId, setMyChildId] = useState<string>('')
+  const [isEnding, setIsEnding] = useState(false)
 
+  const handleEndCall = async () => {
+    if (!sessionId || isEnding) return
+
+    setIsEnding(true)
+
+    await fetch('/api/calls/end', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ sessionId }),
+    })
+
+    router.push(`/report?sessionId=${sessionId}`)
+  }
   useEffect(() => {
     const fetchSessionAndChild = async () => {
       const supabase = getSupabase()
 
-      // ① Supabase AuthからユーザーIDを取得
+      // ① URLからsession_idを取得
+      const params = new URLSearchParams(window.location.search)
+      const sessionIdFromUrl = params.get('session_id')
+
+      // ② Supabase AuthからユーザーIDを取得
       const {
         data: { user },
       } = await supabase.auth.getUser()
       if (!user) return
 
-      // ② childrenテーブルからchildIdを取得
+      // ③ childrenテーブルからchildIdを取得
       const { data: child } = await supabase
         .from('children')
         .select('id')
@@ -39,13 +60,21 @@ function CallPageInner() {
       if (!child) return
       setMyChildId(child.id)
 
-      // ③ sessionsテーブルからsessionIdを取得
+      // ④ URLのsession_idを優先
+      if (sessionIdFromUrl) {
+        setSessionId(sessionIdFromUrl)
+        return
+      }
+
+      // ⑤ URLにsession_idがない時だけDBから探す
       const { data: session } = await supabase
         .from('sessions')
         .select('id')
         .or(`child_a_id.eq.${child.id},child_b_id.eq.${child.id}`)
         .eq('status', 'matched')
-        .single()
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
 
       if (!session) return
       setSessionId(session.id)
@@ -81,8 +110,7 @@ function CallPageInner() {
         </div>
         {/* 下部：操作ボタン */}
         <div className="h-[15%] flex items-end justify-center pb-4">
-          <CallTimer />
-          <CallControls />
+          <CallControls onEndCall={handleEndCall} isEnding={isEnding} />
         </div>
         {callEnded && <CallEndScreen />}
       </div>
