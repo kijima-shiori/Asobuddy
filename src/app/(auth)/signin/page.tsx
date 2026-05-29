@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { loginAction } from './actions'
+import { getSupabase } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,7 +17,12 @@ export default function SignInPage() {
     if (loading) return
     setLoading(true)
 
-    const { error } = await loginAction(email, password)
+    const supabase = getSupabase()
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
 
     if (error) {
       alert('ログインに失敗しました：' + error.message)
@@ -26,6 +31,7 @@ export default function SignInPage() {
     }
 
     router.push('/dashboard')
+    router.refresh()
   }
 
   return (
